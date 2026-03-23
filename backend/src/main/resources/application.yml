@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: openlens
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/openlens
+    username: openlens
+    password: openlens
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: openlens-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.openlens.*"
+
+server:
+  port: 8080
+
+github:
+  api:
+    base-url: https://api.github.com
+    token: ${GITHUB_TOKEN:}
+    rate-limit-buffer: 100
+
+openlens:
+  cache:
+    repo-ttl-hours: 24
+    brief-ttl-hours: 6
+  ingestion:
+    max-prs: 200
+    max-issues: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.openlens: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: INFO

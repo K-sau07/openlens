@@ -1,0 +1,26 @@
+# environment variables — never commit this
+.env
+*.env
+.env.local
+.env.*.local
+
+# maven
+backend/target/
+*.class
+*.jar
+*.war
+
+# ide
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# logs
+*.log
+logs/
+
+# node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

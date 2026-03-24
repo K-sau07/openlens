@@ -10,11 +10,16 @@ export default function RepoGraph() {
     let animId
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio
+      const parent = canvas.parentElement
+      if (!parent) return
+      canvas.width = parent.offsetWidth * window.devicePixelRatio
+      canvas.height = parent.offsetHeight * window.devicePixelRatio
+      canvas.style.width = parent.offsetWidth + 'px'
+      canvas.style.height = parent.offsetHeight + 'px'
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
     }
-    resize()
+    // small delay so DOM has settled before measuring
+    setTimeout(resize, 50)
     window.addEventListener('resize', resize)
 
     const W = () => canvas.offsetWidth
@@ -162,7 +167,7 @@ export default function RepoGraph() {
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block' }}
     />
   )
 }

@@ -3,303 +3,343 @@ import Navbar from '../components/layout/Navbar'
 import Ticker from '../components/ui/Ticker'
 import BriefCard from '../components/ui/BriefCard'
 import RepoGraph from '../components/ui/RepoGraph'
-import TerminalTyper from '../components/ui/TerminalTyper'
 
-const c = {
-  bg: '#100806', bg2: '#0E0604', bg3: '#1C1109',
-  bgLight: '#F5ECD8', bgLight2: '#EDE0C4',
-  text: '#ECD9B8', muted: 'rgba(236,217,184,0.5)', dim: 'rgba(236,217,184,0.28)',
-  textDark: '#2C1A0E', mutedDark: 'rgba(44,26,14,0.6)',
-  accent: '#AA5535', accent2: '#C4714D', accentDark: '#8B3E22',
-  border: 'rgba(170,85,53,0.25)', border2: 'rgba(170,85,53,0.15)',
-  borderDark: 'rgba(139,62,34,0.2)',
-  card: '#160C08',
-}
+const STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 
-const globalStyles = `
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(28px); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .ol-page { background: #0C0604; color: #ECD9B8; font-family: 'DM Sans', sans-serif; }
+
+  @keyframes heroIn {
+    from { opacity: 0; transform: translateY(40px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+  @keyframes cardReveal {
+    from { opacity: 0; transform: translateY(60px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes pulse-cta {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(170,85,53,0.45); }
-    60%       { box-shadow: 0 0 0 10px rgba(170,85,53,0); }
+  @keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(170,85,53,0.5); }
+    60%       { box-shadow: 0 0 0 12px rgba(170,85,53,0); }
   }
-  .hero-animate > * {
+  .hero-eyebrow  { opacity:0; animation: heroIn .7s cubic-bezier(.22,1,.36,1) .1s forwards; }
+  .hero-headline { opacity:0; animation: heroIn .9s cubic-bezier(.22,1,.36,1) .2s forwards; }
+  .hero-sub      { opacity:0; animation: heroIn .7s cubic-bezier(.22,1,.36,1) .4s forwards; }
+  .hero-cta      { opacity:0; animation: heroIn .7s cubic-bezier(.22,1,.36,1) .55s forwards; }
+  .card-reveal   { opacity:0; animation: cardReveal 1s cubic-bezier(.22,1,.36,1) .7s forwards; }
+
+  .cta-btn {
+    animation: ctaPulse 3s ease-in-out infinite;
+    transition: background .2s, transform .15s;
+  }
+  .cta-btn:hover { background: #C4714D !important; transform: translateY(-2px); }
+
+  .reveal {
     opacity: 0;
-    animation: fadeUp 0.75s cubic-bezier(0.22,1,0.36,1) forwards;
+    transform: translateY(32px);
+    transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
   }
-  .hero-animate > *:nth-child(1) { animation-delay: 0.05s; }
-  .hero-animate > *:nth-child(2) { animation-delay: 0.15s; }
-  .hero-animate > *:nth-child(3) { animation-delay: 0.25s; }
-  .hero-animate > *:nth-child(4) { animation-delay: 0.35s; }
-  .hero-card-animate {
-    opacity: 0;
-    animation: fadeUp 0.85s cubic-bezier(0.22,1,0.36,1) 0.4s forwards;
+  .reveal.show { opacity: 1; transform: translateY(0); }
+  .reveal.d1 { transition-delay: .1s; }
+  .reveal.d2 { transition-delay: .2s; }
+  .reveal.d3 { transition-delay: .3s; }
+
+  .feat-card {
+    transition: border-color .2s, transform .2s;
+    cursor: default;
   }
-  .scroll-reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.65s cubic-bezier(0.22,1,0.36,1), transform 0.65s cubic-bezier(0.22,1,0.36,1);
+  .feat-card:hover {
+    border-color: rgba(170,85,53,.5) !important;
+    transform: translateY(-4px);
   }
-  .scroll-reveal.in-view {
-    opacity: 1;
-    transform: translateY(0);
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 96px;
+    font-weight: 400;
+    color: rgba(170,85,53,.06);
+    line-height: 1;
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    user-select: none;
   }
-  .scroll-reveal.delay-1 { transition-delay: 0.1s; }
-  .scroll-reveal.delay-2 { transition-delay: 0.2s; }
-  .scroll-reveal.delay-3 { transition-delay: 0.3s; }
-  .step-card { transition: border-color 0.2s, transform 0.2s; }
-  .step-card:hover { border-color: rgba(170,85,53,0.55) !important; transform: translateY(-4px); }
-  .get-card { transition: border-color 0.2s, transform 0.2s; }
-  .get-card:hover { border-color: rgba(139,62,34,0.45) !important; transform: translateY(-3px); }
-  .cta-btn { animation: pulse-cta 2.8s ease-in-out infinite; transition: background 0.2s, transform 0.15s; }
-  .cta-btn:hover { background: #C4714D !important; transform: translateY(-1px); }
 `
 
-// attaches IntersectionObserver to trigger CSS transition on scroll
-function useScrollReveal() {
+function useReveal(threshold = 0.12) {
   const ref = useRef(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const targets = el.querySelectorAll('.scroll-reveal')
+    const items = el.querySelectorAll('.reveal')
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); obs.unobserve(e.target) } }),
-      { threshold: 0.1 }
+      entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('show'); obs.unobserve(e.target) } }),
+      { threshold }
     )
-    targets.forEach(t => obs.observe(t))
+    items.forEach(i => obs.observe(i))
     return () => obs.disconnect()
   }, [])
   return ref
 }
 
+// ─── HERO ────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr 360px', minHeight: '780px', borderBottom: `0.5px solid ${c.border2}` }}>
+    <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative', overflow: 'hidden' }}>
 
-      {/* LEFT — product text */}
-      <div style={{ padding: '72px 40px 72px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: `0.5px solid ${c.border2}`, background: c.bg }}>
-        <div className="hero-animate" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '3px', color: c.accent, textTransform: 'uppercase', marginBottom: '20px' }}>
-            Open Source Intelligence
-          </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '42px', lineHeight: '1.1', fontWeight: '400', letterSpacing: '-0.4px', marginBottom: '20px' }}>
-            You've been told<br />to contribute.<br />
-            <em style={{ fontStyle: 'italic', color: c.accent2 }}>Nobody told<br />you how.</em>
-          </h1>
-          <p style={{ fontSize: '13.5px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '32px' }}>
-            Paste a GitHub repo. Tell us your level. Get a contribution guide — matched issues, files to touch, maintainer patterns, and everything you need to get your first PR merged.
-          </p>
-          <div>
-            <button className="cta-btn" style={{ fontSize: '13px', fontWeight: '500', color: c.text, background: c.accent, border: 'none', padding: '12px 28px', borderRadius: '4px', cursor: 'pointer', width: 'fit-content', marginBottom: '10px', display: 'block' }}>
-              Browse Demo Guides
-            </button>
-            <span style={{ fontSize: '11px', color: c.dim }}>No sign-in required. Just a repo URL and a skill level.</span>
-          </div>
-        </div>
+      {/* ambient glow */}
+      <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(170,85,53,0.08) 0%, transparent 65%)', pointerEvents: 'none' }} />
+
+      <div className="hero-eyebrow" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#AA5535', textTransform: 'uppercase', marginBottom: '32px' }}>
+        Open Source Intelligence
       </div>
 
-      {/* CENTER — graph only, no overlap */}
-      <div style={{ position: 'relative', borderRight: `0.5px solid ${c.border2}`, background: '#0D0603', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <RepoGraph />
-        </div>
-        <div style={{ position: 'absolute', top: '20px', left: '20px', fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: 'rgba(170,85,53,0.4)', letterSpacing: '2px' }}>
-          REPO INTELLIGENCE GRAPH
-        </div>
+      <h1 className="hero-headline" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(48px, 7vw, 88px)', lineHeight: '1.06', fontWeight: '400', letterSpacing: '-1px', maxWidth: '900px', marginBottom: '32px' }}>
+        You've been told to contribute.
+        <br />
+        <em style={{ fontStyle: 'italic', color: '#C4714D' }}>Nobody told you how.</em>
+      </h1>
+
+      <p className="hero-sub" style={{ fontSize: '17px', lineHeight: '1.75', color: 'rgba(236,217,184,0.55)', fontWeight: '300', maxWidth: '520px', marginBottom: '48px' }}>
+        Paste a GitHub repo. Tell us your level. Get a personalized contribution guide — matched issues, files to touch, maintainer patterns, and everything you need to get your first PR merged.
+      </p>
+
+      <div className="hero-cta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        <button className="cta-btn" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '15px', fontWeight: '500', color: '#ECD9B8', background: '#AA5535', border: 'none', padding: '14px 36px', borderRadius: '4px', cursor: 'pointer' }}>
+          Browse Demo Guides
+        </button>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: 'rgba(236,217,184,0.28)', letterSpacing: '0.5px' }}>
+          No sign-in required · Just a repo URL and a skill level
+        </span>
       </div>
 
-      {/* RIGHT — brief card only */}
-      <div className="hero-card-animate" style={{ padding: '32px 28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#120906', overflow: 'hidden' }}>
-        <BriefCard />
+      {/* scroll hint */}
+      <div style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '2px', color: 'rgba(236,217,184,0.2)', textTransform: 'uppercase' }}>scroll</div>
+        <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom, rgba(170,85,53,0.4), transparent)' }} />
       </div>
-
-    </div>
+    </section>
   )
 }
 
+// ─── PRODUCT REVEAL ──────────────────────────────────────────────────────────
+function ProductReveal() {
+  const ref = useReveal(0.08)
+  return (
+    <section ref={ref} style={{ padding: '0 40px 120px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#AA5535', textTransform: 'uppercase', marginBottom: '48px' }}>
+        What you get
+      </div>
+      {/* brief card centered as product screenshot */}
+      <div className="card-reveal" style={{ width: '100%', maxWidth: '500px', position: 'relative' }}>
+        {/* glow behind card */}
+        <div style={{ position: 'absolute', inset: '-40px', background: 'radial-gradient(ellipse, rgba(170,85,53,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <BriefCard />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── GRAPH SECTION ───────────────────────────────────────────────────────────
+function GraphSection() {
+  const ref = useReveal(0.06)
+  return (
+    <section ref={ref} style={{ borderTop: '0.5px solid rgba(170,85,53,0.15)', borderBottom: '0.5px solid rgba(170,85,53,0.15)', background: '#0A0503' }}>
+      <div className="reveal" style={{ padding: '64px 64px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#AA5535', textTransform: 'uppercase', marginBottom: '12px' }}>Repo intelligence graph</div>
+          <p style={{ fontSize: '14px', color: 'rgba(236,217,184,0.4)', fontWeight: '300', maxWidth: '360px', lineHeight: '1.65' }}>OpenLens maps how issues, files, PRs, and maintainer patterns connect — before generating your guide.</p>
+        </div>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: 'rgba(170,85,53,0.35)', letterSpacing: '1px' }}>opencodeintel/opencodeintel</div>
+      </div>
+      <div className="reveal d1" style={{ height: '420px', position: 'relative', margin: '32px 0 0' }}>
+        <RepoGraph />
+      </div>
+    </section>
+  )
+}
+
+// ─── STORY ───────────────────────────────────────────────────────────────────
 function Story() {
-  const ref = useScrollReveal()
+  const ref = useReveal()
   const stats = [
     { num: '84%', label: 'of developers who want to contribute never make their first PR' },
-    { num: '~3hrs', label: 'average time spent reading a codebase before giving up' },
-    { num: '0', label: 'tools that tell you which files to touch and what gets merged' },
+    { num: '~3hrs', label: 'average time reading a codebase before giving up and closing the tab' },
+    { num: '0', label: 'tools that tell you which files to touch and what this maintainer merges' },
   ]
   return (
-    <div ref={ref} style={{ background: c.bgLight, color: c.textDark, padding: '96px 64px' }}>
-      <div className="scroll-reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: c.accentDark, textTransform: 'uppercase', marginBottom: '18px' }}>The problem</div>
-      <h2 className="scroll-reveal delay-1" style={{ fontFamily: "'Playfair Display', serif", fontSize: '44px', fontWeight: '400', lineHeight: '1.15', letterSpacing: '-0.3px', maxWidth: '600px', color: c.textDark, marginBottom: '56px' }}>
+    <section ref={ref} style={{ background: '#F2E8D5', color: '#2C1A0E', padding: '112px 64px' }}>
+      <div className="reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#8B3E22', textTransform: 'uppercase', marginBottom: '20px' }}>The problem</div>
+      <h2 className="reveal d1" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: '400', lineHeight: '1.12', letterSpacing: '-0.5px', maxWidth: '700px', marginBottom: '64px' }}>
         Most developers never make their first PR.{' '}
-        <em style={{ fontStyle: 'italic', color: c.accentDark }}>Here's why.</em>
+        <em style={{ fontStyle: 'italic', color: '#8B3E22' }}>Here's why.</em>
       </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '80px', alignItems: 'start' }}>
-        <div className="scroll-reveal delay-1" style={{ fontSize: '15px', lineHeight: '1.9', color: c.mutedDark, fontWeight: '300', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <p>You find a repo you care about. You clone it. You read the README. You scroll through open issues for twenty minutes. They all feel either too small to matter or too large to touch. You close the tab.</p>
-          <p>This isn't a motivation problem. It's an <strong style={{ color: c.textDark, fontWeight: '500' }}>information problem.</strong> The repo doesn't tell you which issue fits your level, which files you'd need to change, or what kind of PR this maintainer actually merges.</p>
-          <p>goodfirstissue.dev gives you a list. GitHub gives you labels. Neither gives you a <strong style={{ color: c.textDark, fontWeight: '500' }}>contribution guide built for you.</strong></p>
-          <p>That's what OpenLens does.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
+        <div className="reveal d1" style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '15px', lineHeight: '1.85', color: 'rgba(44,26,14,0.65)', fontWeight: '300' }}>
+          <p>You find a repo you care about. You clone it. You scroll through issues for twenty minutes. They all feel either too trivial or too complex. You close the tab.</p>
+          <p>This isn't a motivation problem. It's an <strong style={{ color: '#2C1A0E', fontWeight: '500' }}>information problem.</strong> The repo doesn't tell you which issue fits your level, which files to change, or what kind of PR this maintainer actually merges.</p>
+          <p>goodfirstissue.dev gives you a list. GitHub gives you labels. Neither gives you a <strong style={{ color: '#2C1A0E', fontWeight: '500' }}>guide built for you.</strong> That's what OpenLens does.</p>
         </div>
-        <div style={{ borderTop: `1.5px solid ${c.borderDark}` }}>
+        <div style={{ borderTop: '1.5px solid rgba(139,62,34,0.2)' }}>
           {stats.map((s, i) => (
-            <div key={i} className={`scroll-reveal delay-${i + 1}`} style={{ padding: '24px 0', borderBottom: `0.5px solid ${c.borderDark}` }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '42px', fontWeight: '400', color: c.accentDark, lineHeight: '1', marginBottom: '6px' }}>{s.num}</div>
-              <div style={{ fontSize: '13px', color: c.mutedDark, fontWeight: '300', lineHeight: '1.5' }}>{s.label}</div>
+            <div key={i} className={`reveal d${i + 1}`} style={{ padding: '28px 0', borderBottom: '0.5px solid rgba(139,62,34,0.15)' }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '48px', fontWeight: '400', color: '#8B3E22', lineHeight: '1', marginBottom: '8px' }}>{s.num}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(44,26,14,0.55)', fontWeight: '300', lineHeight: '1.5' }}>{s.label}</div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
+// ─── HOW IT WORKS ────────────────────────────────────────────────────────────
 function HowItWorks() {
-  const ref = useScrollReveal()
+  const ref = useReveal()
   const steps = [
-    { num: '01', title: ['Paste a', 'repo URL'], body: 'Any public GitHub repository. OpenLens pulls the issue list, commit history, merged PRs, and contributor patterns in the background.' },
-    { num: '02', title: ['Answer 5', 'quick questions'], body: 'Repo-specific questions generated from what the codebase actually needs — not a generic skill dropdown.' },
-    { num: '03', title: ['Get your', 'contribution guide'], body: 'Matched issues, files to touch, maintainer patterns, similar merged PRs, and a step-by-step path to your first merged PR.' },
+    { num: '01', title: 'Paste a repo URL', body: 'Any public GitHub repo. OpenLens fetches issues, merged PRs, contributor patterns, and file structure in the background.' },
+    { num: '02', title: 'Answer 5 quick questions', body: 'Questions generated from what this specific repo actually needs — not a generic dropdown. Your level matched to this codebase.' },
+    { num: '03', title: 'Get your contribution guide', body: 'A full guide: matched issues, exact files to touch, how this maintainer thinks, similar merged PRs, and a step-by-step path to your first PR.' },
   ]
   return (
-    <div ref={ref} style={{ background: c.bg, padding: '96px 64px' }}>
-      <div className="scroll-reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: c.accent, textTransform: 'uppercase', marginBottom: '18px' }}>How it works</div>
-      <h2 className="scroll-reveal delay-1" style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: '400', lineHeight: '1.2', letterSpacing: '-0.3px', marginBottom: '48px', maxWidth: '520px' }}>
-        Three steps from <em style={{ fontStyle: 'italic', color: c.accent2 }}>cold repo</em> to merged PR
+    <section ref={ref} style={{ padding: '112px 64px', background: '#0C0604' }}>
+      <div className="reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#AA5535', textTransform: 'uppercase', marginBottom: '20px' }}>How it works</div>
+      <h2 className="reveal d1" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: '400', lineHeight: '1.15', letterSpacing: '-0.3px', marginBottom: '64px', maxWidth: '560px' }}>
+        Three steps from <em style={{ fontStyle: 'italic', color: '#C4714D' }}>cold repo</em> to merged PR
       </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'start' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          {steps.map((step, i) => (
-            <div key={i} className={`scroll-reveal delay-${i + 1}`} style={{ padding: '28px 0', borderBottom: i < steps.length - 1 ? `0.5px solid ${c.border2}` : 'none' }}>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: c.accent, marginBottom: '10px', letterSpacing: '1px', opacity: 0.7 }}>{step.num}</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: '400', lineHeight: '1.3', marginBottom: '8px' }}>
-                {step.title[0]} <em style={{ fontStyle: 'italic', color: c.accent2 }}>{step.title[1]}</em>
-              </div>
-              <div style={{ fontSize: '13px', lineHeight: '1.7', color: c.muted, fontWeight: '300' }}>{step.body}</div>
-            </div>
-          ))}
-        </div>
-        <div className="scroll-reveal delay-2">
-          <TerminalTyper />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function WhatYouGet() {
-  const ref = useScrollReveal()
-  const cards = [
-    { num: '01', label: 'Issues', title: ['Issues matched', 'to your level'], body: "Not a dump of every \"good first issue\" label. OpenLens reads the actual code complexity and surfaces only the issues that fit where you are right now." },
-    { num: '02', label: 'Files', title: ['Exactly which', 'files to touch'], body: "Stop reading the entire codebase to figure out where to start. OpenLens maps the issue to the specific files and tests you'd need to change." },
-    { num: '03', label: 'Maintainer', title: ['How this maintainer', 'actually thinks'], body: "OpenLens reads merged PR history so your PR lands the way they expect it — and gets merged, not ignored." },
-    { num: '04', label: 'Guide', title: ['A doc you follow', 'start to finish'], body: "A complete contribution guide built for this repo, this issue, and your level. Walk in, make the PR, walk out." },
-  ]
-  return (
-    <div ref={ref} style={{ background: c.bgLight2, color: c.textDark, padding: '96px 64px' }}>
-      <div className="scroll-reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: c.accentDark, textTransform: 'uppercase', marginBottom: '18px' }}>What's inside your guide</div>
-      <h2 className="scroll-reveal delay-1" style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: '400', lineHeight: '1.2', letterSpacing: '-0.3px', marginBottom: '48px', maxWidth: '520px', color: c.textDark }}>
-        Everything the repo <em style={{ fontStyle: 'italic', color: c.accentDark }}>won't tell you itself</em>
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', background: c.borderDark }}>
-        {cards.map((card, i) => (
-          <div key={i} className={`get-card scroll-reveal delay-${(i % 2) + 1}`} style={{ background: c.bgLight, padding: '40px 36px', border: `0.5px solid ${c.borderDark}`, cursor: 'default' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '2px', color: c.accentDark, textTransform: 'uppercase', opacity: 0.6 }}>{card.num}</span>
-              <span style={{ width: '1px', height: '10px', background: c.borderDark, display: 'inline-block' }} />
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '2px', color: c.accentDark, textTransform: 'uppercase' }}>{card.label}</span>
-            </div>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: '400', lineHeight: '1.3', marginBottom: '12px', color: c.textDark }}>
-              {card.title[0]}<br /><em style={{ fontStyle: 'italic', color: c.accentDark }}>{card.title[1]}</em>
-            </div>
-            <div style={{ fontSize: '13.5px', lineHeight: '1.75', color: c.mutedDark, fontWeight: '300' }}>{card.body}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: 'rgba(170,85,53,0.15)' }}>
+        {steps.map((step, i) => (
+          <div key={i} className={`feat-card reveal d${i + 1}`} style={{ background: '#110805', padding: '48px 40px 56px', border: '0.5px solid rgba(170,85,53,0.15)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#AA5535', letterSpacing: '2px', marginBottom: '24px', opacity: 0.6 }}>{step.num}</div>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: '400', lineHeight: '1.3', color: '#ECD9B8', marginBottom: '14px' }}>{step.title}</div>
+            <div style={{ fontSize: '14px', lineHeight: '1.75', color: 'rgba(236,217,184,0.5)', fontWeight: '300' }}>{step.body}</div>
+            <div className="step-num">{step.num}</div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 
-function DemoRepo() {
-  const ref = useScrollReveal()
-  const stats = [
-    { num: '50', label: 'open issues' },
-    { num: '0', label: 'merged PRs' },
-    { num: '3', label: 'skill levels' },
+// ─── FEATURES ────────────────────────────────────────────────────────────────
+function Features() {
+  const ref = useReveal()
+  const cards = [
+    { num: '01', label: 'Issues', title: 'Issues matched to your level', body: "Not a dump of every label. OpenLens reads actual code complexity and surfaces only the issues that fit where you are right now." },
+    { num: '02', label: 'Files', title: 'Exactly which files to touch', body: "No more reading the entire codebase blind. OpenLens maps the issue to the specific files and tests you'd need to change." },
+    { num: '03', label: 'Maintainer', title: 'How this maintainer actually thinks', body: "Every maintainer has a style. OpenLens reads merged PR history so your PR lands the way they expect it — and gets merged, not ignored." },
+    { num: '04', label: 'Guide', title: 'A doc you follow start to finish', body: "A complete contribution guide built for this repo, this issue, and your level. Walk in, make the PR, walk out." },
   ]
   return (
-    <div ref={ref} style={{ background: c.bg, padding: '96px 64px', borderTop: `0.5px solid ${c.border2}` }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
-        <div className="scroll-reveal">
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: c.accent, textTransform: 'uppercase', marginBottom: '18px' }}>Try it now</div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: '400', lineHeight: '1.2', letterSpacing: '-0.3px', marginBottom: '18px' }}>
-            Start with a real repo.<br /><em style={{ fontStyle: 'italic', color: c.accent2 }}>See what we build for you.</em>
+    <section ref={ref} style={{ padding: '112px 64px', background: '#EDE3CE', color: '#2C1A0E' }}>
+      <div className="reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#8B3E22', textTransform: 'uppercase', marginBottom: '20px' }}>What's inside your guide</div>
+      <h2 className="reveal d1" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: '400', lineHeight: '1.15', letterSpacing: '-0.3px', marginBottom: '64px', maxWidth: '560px', color: '#2C1A0E' }}>
+        Everything the repo <em style={{ fontStyle: 'italic', color: '#8B3E22' }}>won't tell you itself</em>
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', background: 'rgba(139,62,34,0.18)' }}>
+        {cards.map((card, i) => (
+          <div key={i} className={`feat-card reveal d${(i % 2) + 1}`} style={{ background: '#F2E8D5', padding: '48px 40px', border: '0.5px solid rgba(139,62,34,0.15)', cursor: 'default' }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '2px', color: 'rgba(139,62,34,0.5)', textTransform: 'uppercase' }}>{card.num}</span>
+              <span style={{ width: '1px', height: '10px', background: 'rgba(139,62,34,0.2)', flexShrink: 0 }} />
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '2px', color: '#8B3E22', textTransform: 'uppercase' }}>{card.label}</span>
+            </div>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: '400', lineHeight: '1.3', color: '#2C1A0E', marginBottom: '12px' }}>{card.title}</div>
+            <div style={{ fontSize: '14px', lineHeight: '1.75', color: 'rgba(44,26,14,0.6)', fontWeight: '300' }}>{card.body}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ─── DEMO CTA ─────────────────────────────────────────────────────────────────
+function DemoCTA() {
+  const ref = useReveal()
+  const stats = [
+    { num: '50', label: 'open issues' },
+    { num: '0', label: 'merged PRs — wide open' },
+    { num: '3', label: 'skill levels covered' },
+  ]
+  return (
+    <section ref={ref} style={{ padding: '112px 64px', background: '#0C0604', borderTop: '0.5px solid rgba(170,85,53,0.15)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '96px', alignItems: 'center' }}>
+        <div>
+          <div className="reveal" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: '#AA5535', textTransform: 'uppercase', marginBottom: '20px' }}>Try it now</div>
+          <h2 className="reveal d1" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: '400', lineHeight: '1.15', letterSpacing: '-0.3px', marginBottom: '20px' }}>
+            Start with a real repo.<br />
+            <em style={{ fontStyle: 'italic', color: '#C4714D' }}>See what we build for you.</em>
           </h2>
-          <p style={{ fontSize: '15px', lineHeight: '1.8', color: c.muted, fontWeight: '300', maxWidth: '380px', marginBottom: '36px' }}>
-            opencodeintel is a Python codebase intelligence tool with 50 open issues and a clean history. The perfect first repo to try OpenLens on — real issues, active maintainer, mergeable PRs.
+          <p className="reveal d2" style={{ fontSize: '15px', lineHeight: '1.8', color: 'rgba(236,217,184,0.5)', fontWeight: '300', maxWidth: '380px', marginBottom: '40px' }}>
+            opencodeintel is a Python codebase intelligence tool — 50 open issues, active maintainer, clean PR history. The perfect first repo to try OpenLens on.
           </p>
-          <button className="cta-btn" style={{ fontSize: '14px', fontWeight: '500', color: c.text, background: c.accent, border: 'none', padding: '13px 32px', borderRadius: '4px', cursor: 'pointer', marginBottom: '10px', display: 'block' }}>
-            Generate my contribution guide
-          </button>
-          <div style={{ fontSize: '12px', color: c.dim }}>Uses opencodeintel/opencodeintel · No sign-in required</div>
+          <div className="reveal d2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+            <button className="cta-btn" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: '500', color: '#ECD9B8', background: '#AA5535', border: 'none', padding: '13px 32px', borderRadius: '4px', cursor: 'pointer' }}>
+              Generate my contribution guide
+            </button>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: 'rgba(236,217,184,0.25)' }}>opencodeintel/opencodeintel · no sign-in required</span>
+          </div>
         </div>
-        <div className="scroll-reveal delay-2" style={{ background: c.card, border: `0.5px solid rgba(170,85,53,0.35)`, borderRadius: '10px', padding: '28px 32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '22px' }}>
-            <div style={{ width: '38px', height: '38px', background: 'rgba(170,85,53,0.12)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `0.5px solid ${c.border}`, flexShrink: 0 }}>
-              <div style={{ width: '14px', height: '14px', border: `1.5px solid ${c.accent2}`, borderRadius: '3px' }} />
+        <div className="reveal d2" style={{ background: '#130907', border: '0.5px solid rgba(170,85,53,0.3)', borderRadius: '10px', padding: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', paddingBottom: '20px', borderBottom: '0.5px solid rgba(170,85,53,0.12)' }}>
+            <div style={{ width: '36px', height: '36px', background: 'rgba(170,85,53,0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '0.5px solid rgba(170,85,53,0.2)', flexShrink: 0 }}>
+              <div style={{ width: '13px', height: '13px', border: '1.5px solid #C4714D', borderRadius: '3px' }} />
             </div>
             <div>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', color: c.text }}>opencodeintel/opencodeintel</div>
-              <div style={{ fontSize: '12px', color: c.muted, marginTop: '3px' }}>Codebase intelligence · Python · FastAPI</div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#ECD9B8' }}>opencodeintel/opencodeintel</div>
+              <div style={{ fontSize: '12px', color: 'rgba(236,217,184,0.4)', marginTop: '3px' }}>Python · FastAPI · Codebase intelligence</div>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '22px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
             {stats.map((s, i) => (
-              <div key={i} style={{ background: 'rgba(170,85,53,0.06)', border: `0.5px solid ${c.border2}`, borderRadius: '5px', padding: '14px 16px' }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: '400', color: c.accent2, marginBottom: '3px' }}>{s.num}</div>
-                <div style={{ fontSize: '11px', color: c.dim }}>{s.label}</div>
+              <div key={i} style={{ background: 'rgba(170,85,53,0.05)', border: '0.5px solid rgba(170,85,53,0.12)', borderRadius: '5px', padding: '14px' }}>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: '400', color: '#C4714D', marginBottom: '4px' }}>{s.num}</div>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: 'rgba(236,217,184,0.3)', lineHeight: '1.4' }}>{s.label}</div>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: '13px', lineHeight: '1.7', color: c.muted, fontWeight: '300', borderTop: `0.5px solid ${c.border2}`, paddingTop: '18px' }}>
-            A semantic code search and context file generation platform. First contribution territory is wide open.
+          <div style={{ fontSize: '13px', lineHeight: '1.7', color: 'rgba(236,217,184,0.4)', fontWeight: '300' }}>
+            Semantic code search and context file generation. Understands codebases the way a senior engineer would. First contribution territory is wide open.
           </div>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
+// ─── FOOTER ──────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <div style={{ background: c.bg2, padding: '48px 64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `0.5px solid ${c.border2}` }}>
+    <footer style={{ padding: '48px 64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '0.5px solid rgba(170,85,53,0.15)', background: '#0A0503' }}>
       <div>
-        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: c.text, marginBottom: '6px' }}>OpenLens</div>
-        <div style={{ fontSize: '12px', color: c.dim, fontWeight: '300' }}>Open source contribution intelligence.</div>
+        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: '#ECD9B8', marginBottom: '4px' }}>OpenLens</div>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: 'rgba(236,217,184,0.25)', letterSpacing: '0.3px' }}>Open source contribution intelligence</div>
       </div>
-      <div style={{ display: 'flex', gap: '28px' }}>
-        {['GitHub', 'Docs', 'Browse Guides'].map(link => (
-          <a key={link} href="#" style={{ fontSize: '12px', color: c.muted }}>{link}</a>
+      <div style={{ display: 'flex', gap: '32px' }}>
+        {['GitHub', 'Docs', 'Browse Guides'].map(l => (
+          <a key={l} href="#" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'rgba(236,217,184,0.4)', textDecoration: 'none' }}>{l}</a>
         ))}
       </div>
-    </div>
+    </footer>
   )
 }
 
+// ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
-    <div style={{ background: c.bg, color: c.text, minHeight: '100vh' }}>
-      <style>{globalStyles}</style>
+    <div className="ol-page">
+      <style>{STYLES}</style>
       <Navbar />
       <Ticker />
       <Hero />
+      <ProductReveal />
+      <GraphSection />
       <Story />
       <HowItWorks />
-      <WhatYouGet />
-      <DemoRepo />
+      <Features />
+      <DemoCTA />
       <Footer />
     </div>
   )

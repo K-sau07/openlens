@@ -8,6 +8,10 @@ spring:
     password: openlens
     driver-class-name: org.postgresql.Driver
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -41,7 +45,7 @@ server:
 github:
   api:
     base-url: https://api.github.com
-    token: ${GITHUB_TOKEN:}
+    token: ${GITHUB_TOKEN:placeholder}
     rate-limit-buffer: 100
 
 openlens:

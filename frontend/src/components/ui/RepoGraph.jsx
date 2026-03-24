@@ -34,16 +34,16 @@ export default function RepoGraph() {
       { label: 'opencodeintel', type: 'repo', color: '#ECD9B8' },
     ]
 
-    // place nodes in an organic cluster
+    // place nodes spread across the full canvas
     const nodes = nodeTypes.map((nt, i) => {
       const angle = (i / nodeTypes.length) * Math.PI * 2
-      const radius = i === 9 ? 0 : 28 + (i % 3) * 22 + Math.random() * 30
+      const radius = i === 9 ? 0 : 28 + (i % 3) * 14 + Math.random() * 12
       return {
         ...nt,
-        x: 50 + Math.cos(angle) * radius * 0.7,
-        y: 50 + Math.sin(angle) * radius * 0.55,
-        vx: (Math.random() - 0.5) * 0.04,
-        vy: (Math.random() - 0.5) * 0.04,
+        x: i === 9 ? 50 : 15 + ((i * 73 + 17) % 70),
+        y: i === 9 ? 50 : 12 + ((i * 59 + 31) % 76),
+        vx: (Math.random() - 0.5) * 0.03,
+        vy: (Math.random() - 0.5) * 0.03,
         r: nt.type === 'repo' ? 7 : nt.type === 'maintainer' ? 5 : 4,
         pulse: Math.random() * Math.PI * 2,
         active: false,
@@ -133,9 +133,12 @@ export default function RepoGraph() {
 
         // label
         ctx.font = `${node.type === 'repo' ? '600 ' : ''}10px 'JetBrains Mono', monospace`
-        ctx.fillStyle = node.color + 'DD'
+        ctx.fillStyle = node.color
         ctx.textAlign = 'center'
-        ctx.fillText(node.label, x, y + node.r + 13)
+        ctx.shadowColor = node.color
+        ctx.shadowBlur = 6
+        ctx.fillText(node.label, x, y + node.r + 14)
+        ctx.shadowBlur = 0
       })
 
       // gentle float

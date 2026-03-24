@@ -90,7 +90,7 @@ function Hero() {
             You've been told<br />to contribute.<br />
             <em style={{ fontStyle: 'italic', color: c.accent2 }}>Nobody told<br />you how.</em>
           </h1>
-          <p style={{ fontSize: '14px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '36px', maxWidth: '340px' }}>
+          <p style={{ fontSize: '14px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '36px', maxWidth: '320px' }}>
             Paste a GitHub repo. Tell us your level. Get a contribution guide that actually makes sense — matched issues, files to touch, maintainer patterns, and everything you need to get your first PR merged.
           </p>
           <div>

@@ -5,6 +5,8 @@ const s = {
     borderRadius: '10px',
     width: '100%',
     maxWidth: '420px',
+    maxHeight: '82vh',
+    overflowY: 'auto',
     overflow: 'hidden',
   },
   cardTop: {

@@ -78,17 +78,17 @@ function useScrollReveal() {
 
 function Hero() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '860px', alignItems: 'center', borderBottom: `0.5px solid ${c.border2}` }}>
-      <div style={{ padding: '72px 48px 72px 64px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: `0.5px solid ${c.border2}`, minHeight: '860px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '760px', alignItems: 'center', borderBottom: `0.5px solid ${c.border2}` }}>
+      <div style={{ padding: '56px 40px 56px 64px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: `0.5px solid ${c.border2}`, minHeight: '760px' }}>
         <div className="hero-animate" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: c.accent, textTransform: 'uppercase', marginBottom: '24px' }}>
             Open Source Intelligence
           </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '54px', lineHeight: '1.08', fontWeight: '400', letterSpacing: '-0.5px', marginBottom: '24px' }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '46px', lineHeight: '1.1', fontWeight: '400', letterSpacing: '-0.5px', marginBottom: '22px' }}>
             You've been told<br />to contribute.<br />
             <em style={{ fontStyle: 'italic', color: c.accent2 }}>Nobody told<br />you how.</em>
           </h1>
-          <p style={{ fontSize: '15px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '40px', maxWidth: '380px' }}>
+          <p style={{ fontSize: '14px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '36px', maxWidth: '340px' }}>
             Paste a GitHub repo. Tell us your level. Get a contribution guide that actually makes sense — matched issues, files to touch, maintainer patterns, and everything you need to get your first PR merged.
           </p>
           <div>
@@ -99,7 +99,7 @@ function Hero() {
           </div>
         </div>
       </div>
-      <div style={{ padding: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '860px', background: 'rgba(22,12,8,0.6)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '760px', background: 'rgba(22,12,8,0.6)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '420px', height: '420px', background: 'radial-gradient(circle, rgba(170,85,53,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="hero-card-animate" style={{ width: '100%' }}>
           <BriefCard />

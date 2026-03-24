@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import Navbar from '../components/layout/Navbar'
 import Ticker from '../components/ui/Ticker'
 import BriefCard from '../components/ui/BriefCard'
+import RepoGraph from '../components/ui/RepoGraph'
+import TerminalTyper from '../components/ui/TerminalTyper'
 
 const c = {
   bg: '#100806', bg2: '#0E0604', bg3: '#1C1109',
@@ -99,10 +101,18 @@ function Hero() {
           </div>
         </div>
       </div>
-      <div style={{ padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '760px', background: 'rgba(22,12,8,0.6)', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '420px', height: '420px', background: 'radial-gradient(circle, rgba(170,85,53,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div className="hero-card-animate" style={{ width: '100%' }}>
+      <div style={{ position: 'relative', minHeight: '760px', background: 'rgba(14,6,4,0.8)', overflow: 'hidden' }}>
+        {/* animated repo graph fills the background */}
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <RepoGraph />
+        </div>
+        {/* brief card floats on top */}
+        <div className="hero-card-animate" style={{ position: 'absolute', bottom: '48px', right: '40px', width: '340px', zIndex: 2 }}>
           <BriefCard />
+        </div>
+        {/* top-left repo label */}
+        <div style={{ position: 'absolute', top: '32px', left: '32px', fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: 'rgba(170,85,53,0.6)', letterSpacing: '1.5px' }}>
+          REPO INTELLIGENCE GRAPH
         </div>
       </div>
     </div>
@@ -156,17 +166,21 @@ function HowItWorks() {
       <h2 className="scroll-reveal delay-1" style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: '400', lineHeight: '1.2', letterSpacing: '-0.3px', marginBottom: '48px', maxWidth: '520px' }}>
         Three steps from <em style={{ fontStyle: 'italic', color: c.accent2 }}>cold repo</em> to merged PR
       </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: c.border2 }}>
-        {steps.map((step, i) => (
-          <div key={i} className={`step-card scroll-reveal delay-${i + 1}`} style={{ background: c.bg3, padding: '40px 36px', border: `0.5px solid ${c.border2}`, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: c.accent, marginBottom: '28px', letterSpacing: '1px', opacity: 0.6 }}>{step.num}</div>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: '400', lineHeight: '1.3', marginBottom: '14px' }}>
-              {step.title[0]}<br /><em style={{ fontStyle: 'italic', color: c.accent2 }}>{step.title[1]}</em>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+          {steps.map((step, i) => (
+            <div key={i} className={`scroll-reveal delay-${i + 1}`} style={{ padding: '28px 0', borderBottom: i < steps.length - 1 ? `0.5px solid ${c.border2}` : 'none' }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: c.accent, marginBottom: '10px', letterSpacing: '1px', opacity: 0.7 }}>{step.num}</div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: '400', lineHeight: '1.3', marginBottom: '8px' }}>
+                {step.title[0]} <em style={{ fontStyle: 'italic', color: c.accent2 }}>{step.title[1]}</em>
+              </div>
+              <div style={{ fontSize: '13px', lineHeight: '1.7', color: c.muted, fontWeight: '300' }}>{step.body}</div>
             </div>
-            <div style={{ fontSize: '13.5px', lineHeight: '1.75', color: c.muted, fontWeight: '300' }}>{step.body}</div>
-            <div style={{ position: 'absolute', bottom: '24px', right: '28px', fontFamily: "'Playfair Display', serif", fontSize: '72px', fontWeight: '400', color: 'rgba(170,85,53,0.05)', lineHeight: '1', userSelect: 'none' }}>{step.num}</div>
-          </div>
-        ))}
+          ))}
+        </div>
+        <div className="scroll-reveal delay-2">
+          <TerminalTyper />
+        </div>
       </div>
     </div>
   )

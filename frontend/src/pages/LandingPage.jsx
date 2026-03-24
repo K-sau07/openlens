@@ -80,45 +80,45 @@ function useScrollReveal() {
 
 function Hero() {
   return (
-    <div style={{ position: 'relative', minHeight: '780px', borderBottom: `0.5px solid ${c.border2}`, overflow: 'hidden' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr 360px', minHeight: '780px', borderBottom: `0.5px solid ${c.border2}` }}>
 
-      {/* graph spans the full hero background */}
-      <div style={{ position: 'absolute', inset: 0 }}>
-        <RepoGraph />
-      </div>
-
-      {/* dark gradient on left so text is readable over graph */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #100806 38%, rgba(16,8,6,0.85) 58%, rgba(16,8,6,0.1) 100%)', pointerEvents: 'none' }} />
-
-      {/* text — left side */}
-      <div className="hero-animate" style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 0, padding: '96px 0 96px 64px', maxWidth: '480px' }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '3px', color: c.accent, textTransform: 'uppercase', marginBottom: '24px' }}>
-          Open Source Intelligence
-        </div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '50px', lineHeight: '1.08', fontWeight: '400', letterSpacing: '-0.5px', marginBottom: '22px' }}>
-          You've been told<br />to contribute.<br />
-          <em style={{ fontStyle: 'italic', color: c.accent2 }}>Nobody told<br />you how.</em>
-        </h1>
-        <p style={{ fontSize: '14px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '36px', maxWidth: '320px' }}>
-          Paste a GitHub repo. Tell us your level. Get a contribution guide — matched issues, files to touch, maintainer patterns, and everything you need to get your first PR merged.
-        </p>
-        <div>
-          <button className="cta-btn" style={{ fontSize: '14px', fontWeight: '500', color: c.text, background: c.accent, border: 'none', padding: '13px 32px', borderRadius: '4px', cursor: 'pointer', width: 'fit-content', marginBottom: '12px', display: 'block' }}>
-            Browse Demo Guides
-          </button>
-          <span style={{ fontSize: '12px', color: c.dim }}>No sign-in required. Just a repo URL and a skill level.</span>
+      {/* LEFT — product text */}
+      <div style={{ padding: '72px 40px 72px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: `0.5px solid ${c.border2}`, background: c.bg }}>
+        <div className="hero-animate" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', letterSpacing: '3px', color: c.accent, textTransform: 'uppercase', marginBottom: '20px' }}>
+            Open Source Intelligence
+          </div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '42px', lineHeight: '1.1', fontWeight: '400', letterSpacing: '-0.4px', marginBottom: '20px' }}>
+            You've been told<br />to contribute.<br />
+            <em style={{ fontStyle: 'italic', color: c.accent2 }}>Nobody told<br />you how.</em>
+          </h1>
+          <p style={{ fontSize: '13.5px', lineHeight: '1.8', color: c.muted, fontWeight: '300', marginBottom: '32px' }}>
+            Paste a GitHub repo. Tell us your level. Get a contribution guide — matched issues, files to touch, maintainer patterns, and everything you need to get your first PR merged.
+          </p>
+          <div>
+            <button className="cta-btn" style={{ fontSize: '13px', fontWeight: '500', color: c.text, background: c.accent, border: 'none', padding: '12px 28px', borderRadius: '4px', cursor: 'pointer', width: 'fit-content', marginBottom: '10px', display: 'block' }}>
+              Browse Demo Guides
+            </button>
+            <span style={{ fontSize: '11px', color: c.dim }}>No sign-in required. Just a repo URL and a skill level.</span>
+          </div>
         </div>
       </div>
 
-      {/* brief card — right side, vertically centered */}
-      <div className="hero-card-animate" style={{ position: 'absolute', top: '50%', right: '56px', transform: 'translateY(-50%)', zIndex: 2, width: '340px' }}>
+      {/* CENTER — graph only, no overlap */}
+      <div style={{ position: 'relative', borderRight: `0.5px solid ${c.border2}`, background: '#0D0603', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <RepoGraph />
+        </div>
+        <div style={{ position: 'absolute', top: '20px', left: '20px', fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: 'rgba(170,85,53,0.4)', letterSpacing: '2px' }}>
+          REPO INTELLIGENCE GRAPH
+        </div>
+      </div>
+
+      {/* RIGHT — brief card only */}
+      <div className="hero-card-animate" style={{ padding: '32px 28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#120906', overflow: 'hidden' }}>
         <BriefCard />
       </div>
 
-      {/* graph label top-right */}
-      <div style={{ position: 'absolute', top: '28px', right: '420px', fontFamily: "'JetBrains Mono', monospace", fontSize: '9px', color: 'rgba(170,85,53,0.45)', letterSpacing: '2px', zIndex: 2 }}>
-        REPO INTELLIGENCE GRAPH
-      </div>
     </div>
   )
 }

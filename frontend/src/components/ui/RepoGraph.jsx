@@ -12,14 +12,16 @@ export default function RepoGraph() {
     const resize = () => {
       const parent = canvas.parentElement
       if (!parent) return
-      canvas.width = parent.offsetWidth * window.devicePixelRatio
-      canvas.height = parent.offsetHeight * window.devicePixelRatio
-      canvas.style.width = parent.offsetWidth + 'px'
-      canvas.style.height = parent.offsetHeight + 'px'
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
+      const w = parent.offsetWidth
+      const h = parent.offsetHeight
+      if (w === 0 || h === 0) return
+      canvas.width = w * window.devicePixelRatio
+      canvas.height = h * window.devicePixelRatio
+      canvas.style.width = w + 'px'
+      canvas.style.height = h + 'px'
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0)
     }
-    // small delay so DOM has settled before measuring
-    setTimeout(resize, 50)
+    setTimeout(resize, 80)
     window.addEventListener('resize', resize)
 
     const W = () => canvas.offsetWidth

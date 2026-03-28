@@ -11,5 +11,7 @@ public interface RepositoryPort {
 
     Optional<Repository> findByUrl(String url);
 
+    Optional<Repository> findById(Long id);
+
     void updateStatus(Long id, com.openlens.domain.model.RepositoryStatus status);
 }

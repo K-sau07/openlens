@@ -32,6 +32,11 @@ public class RepositoryPersistenceAdapter implements RepositoryPort {
     }
 
     @Override
+    public Optional<Repository> findById(Long id) {
+        return jpaRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
     @Transactional
     public void updateStatus(Long id, RepositoryStatus status) {
         jpaRepository.updateStatus(id, status.name());

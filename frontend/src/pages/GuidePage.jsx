@@ -22,72 +22,28 @@ const STYLES = `
   .progress-fill{transition:width .4s ease}
 `
 
-// fallback guide used until backend returns real one
-const FALLBACK_GUIDE = {
-  repo: { name: 'opencodeintel/opencodeintel', description: 'Codebase intelligence platform — semantic search and context generation.', language: 'Python', stars: 0, openIssues: 50, mergedPrs: 23, avgResponseHours: 48, ciPassing: true, hasTests: true },
-  issue: { number: 17, title: 'Add support for multi-file context', labels: ['good first issue', 'help wanted'], description: 'The context builder currently handles one file at a time. Add support for passing multiple files so the LLM gets broader context.' },
-  matchReason: 'Comfortable reading Python, have opened PRs before. This issue touches 3 files with clear scope. Similar PR #23 merged in under a week.',
-  estimatedHours: '2–4 hours',
-  steps: [
-    {
-      title: 'Understand the repo',
-      subtitle: 'Read the codebase structure before touching anything',
-      body: 'Before writing any code, read through the key files. The context builder is the core of what you\'re changing.',
-      files: ['src/context/builder.py', 'src/api/routes/context.py', 'tests/test_context_builder.py'],
-      checklist: ['Read src/context/builder.py top to bottom', 'Understand the build_context() function signature', 'Read tests/test_context_builder.py to understand existing test patterns'],
-    },
-    {
-      title: 'Set up locally',
-      subtitle: 'Fork, clone, and get the dev environment running',
-      body: 'Fork the repo on GitHub, then clone your fork. This repo uses Docker for local dev.',
-      code: 'git clone https://github.com/YOUR_USERNAME/opencodeintel\ncd opencodeintel\ncp .env.example .env\ndocker compose up --build',
-      tip: 'The .env.example has all keys needed for local dev. There\'s a mock mode — you don\'t need a real LLM API key to run tests.',
-      checklist: ['Forked the repo on GitHub', 'Cloned my fork locally', 'Copied .env.example to .env', 'Docker containers running — app responds at localhost:8000', 'Existing tests pass: pytest returns green'],
-    },
-    {
-      title: 'Find your files',
-      subtitle: 'Locate exactly what to change and understand the current code',
-      body: 'Open src/context/builder.py. The build_context() function currently accepts a single file_path: str. Your change makes it accept file_paths: list[str].',
-      code: '# current — what you\'ll find\ndef build_context(file_path: str) -> ContextResult:\n\n# what it should look like after your change\ndef build_context(file_paths: list[str]) -> ContextResult:',
-      warn: 'The API route in context.py passes file_path as a query param. You\'ll need to update that schema too. Check PR #23 — it touched the same route.',
-      checklist: ['Found build_context() in builder.py', 'Understood the current function signature', 'Checked PR #23 to understand the route pattern'],
-    },
-    {
-      title: 'Make the change',
-      subtitle: 'Write the actual code — small and focused',
-      body: 'Keep your change minimal. Update the function signature, iterate over file_paths, and concatenate the context. Don\'t refactor anything else.',
-      tip: '"Please don\'t refactor surrounding code in the same PR. One thing at a time makes review easier." — maintainer comment on issue #17',
-      checklist: ['Updated build_context() signature to accept list[str]', 'Updated the API route schema in routes/context.py', 'Manually tested the change works locally'],
-    },
-    {
-      title: 'Write your tests',
-      subtitle: 'Every merged PR in this repo includes tests — so does yours',
-      body: 'Add tests to tests/test_context_builder.py. You need at minimum: one test for single file (existing behavior), one for multiple files (new behavior), one for empty list (edge case).',
-      code: 'def test_build_context_multiple_files():\n    result = build_context(["file_a.py", "file_b.py"])\n    assert result.files_processed == 2\n    assert len(result.context) > 0',
-      checklist: ['Added test for single file (existing behavior)', 'Added test for multiple files (new behavior)', 'Added test for empty list edge case', 'All tests pass: pytest returns green'],
-    },
-    {
-      title: 'Commit and push',
-      subtitle: 'Write a commit message this maintainer expects',
-      body: 'Based on merged PR history, this maintainer prefers short imperative commit messages. No prefixes, no emojis. Reference the issue number.',
-      code: 'git checkout -b feature/multi-file-context\ngit add src/context/builder.py src/api/routes/context.py tests/\ngit commit -m "add multi-file context support to builder (#17)"\ngit push origin feature/multi-file-context',
-      checklist: ['Created a new branch', 'Committed with the right message format', 'Pushed to my fork'],
-    },
-    {
-      title: 'Open the PR',
-      subtitle: 'Title, description, and what this maintainer wants to see',
-      body: 'The PR title must reference the issue number. Description should be short — what you changed, why, and how to test. Don\'t over-explain.',
-      code: 'Title:\nadd multi-file context support to builder (#17)\n\nDescription:\nUpdated build_context() to accept list[str] instead of str.\nUpdated the API route schema to match.\nAdded 3 tests covering single file, multiple files, and empty list.\n\nCloses #17',
-      checklist: ['Opened PR with correct title format', 'Description covers what changed and how to test', 'Issue reference is in the description (Closes #17)'],
-    },
-    {
-      title: 'Handle review feedback',
-      subtitle: 'What to do if the maintainer asks for changes',
-      body: 'This maintainer responds within 48 hours and gives clear, specific feedback. If they ask for changes, push new commits to the same branch — don\'t open a new PR. Respond to every comment.',
-      tip: 'In PR #23 and #31, the maintainer left 1–2 small comments, the contributor addressed them in a single follow-up commit, and the PR was merged the next day.',
-      checklist: ['PR submitted and waiting for review'],
-    },
-  ],
+// generates a fallback guide based on the actual selected issue
+function buildFallbackGuide(issue, repoUrl) {
+  const repoName = repoUrl?.replace('https://github.com/', '') || 'this repo'
+  const issueNum = issue?.number || '?'
+  const issueTitle = issue?.title || 'Selected issue'
+  const issueLabels = issue?.labels || []
+  return {
+    repo: { name: repoName, description: 'Open source repository.', language: 'Unknown', openIssues: 0, mergedPrs: 0, avgResponseHours: 48, ciPassing: true, hasTests: true },
+    issue: { number: issueNum, title: issueTitle, labels: issueLabels, description: '' },
+    matchReason: `Matched to your skill level based on issue complexity and your quiz answers.`,
+    estimatedHours: issue?.estimatedHours || '2–4 hours',
+    steps: [
+      { title: 'Understand the repo', subtitle: 'Read the structure before touching anything', body: `Before writing any code, read through the repo to understand how it's organized. Focus on files relevant to issue #${issueNum}.`, checklist: ['Read the README', `Understand what issue #${issueNum} is asking for`, 'Find the files most relevant to this issue'] },
+      { title: 'Set up locally', subtitle: 'Fork, clone, and get the dev environment running', body: 'Fork the repo on GitHub, clone your fork, and follow the setup instructions in the README.', code: `git clone https://github.com/YOUR_USERNAME/${repoName.split('/')[1] || repoName}\ncd ${repoName.split('/')[1] || repoName}\n# follow README setup instructions`, checklist: ['Forked the repo on GitHub', 'Cloned locally', 'Dev environment running', 'Existing tests pass'] },
+      { title: 'Find your files', subtitle: 'Locate exactly what to change', body: `Read issue #${issueNum} carefully. Understand what it's asking for, then find the files that need to change.`, checklist: [`Read issue #${issueNum} top to bottom`, 'Identified the files that need to change', 'Understand the current and expected behavior'] },
+      { title: 'Make the change', subtitle: 'Write the actual code — small and focused', body: `Keep your change minimal and focused on exactly what issue #${issueNum} asks for. Don't refactor unrelated code in the same PR.`, tip: 'Most maintainers prefer small focused PRs. If you find other issues while working, note them separately.', checklist: ['Made the change described in the issue', 'Tested locally', 'Didn\'t touch unrelated code'] },
+      { title: 'Write your tests', subtitle: 'Every good PR includes tests', body: 'Add tests covering the change you made. At minimum: one test for the new behavior, one for edge cases.', checklist: ['Added tests for new behavior', 'Added edge case tests', 'All tests pass'] },
+      { title: 'Commit and push', subtitle: 'Write a commit message the maintainer expects', body: 'Keep commit messages short and imperative. Reference the issue number.', code: `git checkout -b fix/issue-${issueNum}\ngit add .\ngit commit -m "<your change> (#${issueNum})"\ngit push origin fix/issue-${issueNum}`, checklist: ['Created a new branch', 'Committed with a descriptive message', 'Pushed to my fork'] },
+      { title: 'Open the PR', subtitle: 'Title, description, and what this maintainer wants to see', body: 'Keep the description short — what changed, why, how to test. Reference the issue so it closes automatically.', code: `Title: <your change> (#${issueNum})\n\nDescription:\n<What you changed>\n<How to test>\n\nCloses #${issueNum}`, checklist: ['Opened PR with correct title', 'Description explains what changed', `Issue reference included (Closes #${issueNum})`] },
+      { title: 'Handle review feedback', subtitle: 'What to do when the maintainer responds', body: 'If they ask for changes, push new commits to the same branch — don\'t open a new PR. Respond to every comment.', checklist: ['PR submitted and waiting for review'] },
+    ]
+  }
 }
 
 export default function GuidePage() {
@@ -107,7 +63,7 @@ export default function GuidePage() {
         const res = await api.getGuide(repoId, issue?.id)
         setGuide(res)
       } catch {
-        setGuide(FALLBACK_GUIDE)
+        setGuide(buildFallbackGuide(issue, repoUrl))
       } finally {
         setLoading(false)
       }
@@ -136,7 +92,7 @@ export default function GuidePage() {
     )
   }
 
-  const g = guide || FALLBACK_GUIDE
+  const g = guide || buildFallbackGuide(issue, repoUrl)
 
   return (
     <div style={{ background: c.bg, color: c.text, minHeight: '100vh', fontFamily: "'DM Sans', sans-serif" }}>

@@ -11,5 +11,5 @@ create table if not exists issues (
     constraint uq_issue_repo_number unique (repo_id, number)
 );
 
-create index idx_issues_repo_id on issues(repo_id);
-create index idx_issues_state   on issues(state);
+create index if not exists idx_issues_repo_id on issues(repo_id);
+create index if not exists idx_issues_state   on issues(state);

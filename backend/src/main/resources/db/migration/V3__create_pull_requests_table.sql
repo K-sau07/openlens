@@ -13,5 +13,5 @@ create table if not exists pull_requests (
     constraint uq_pr_repo_number unique (repo_id, number)
 );
 
-create index idx_pull_requests_repo_id on pull_requests(repo_id);
-create index idx_pull_requests_author  on pull_requests(author);
+create index if not exists idx_pull_requests_repo_id on pull_requests(repo_id);
+create index if not exists idx_pull_requests_author  on pull_requests(author);

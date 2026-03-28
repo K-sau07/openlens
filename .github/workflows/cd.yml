@@ -1,0 +1,35 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-images:
+    name: Build and tag Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: openlens-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: openlens-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

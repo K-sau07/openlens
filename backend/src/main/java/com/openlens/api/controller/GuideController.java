@@ -75,7 +75,7 @@ public class GuideController {
         return List.of(
                 step("Understand the repo", "Read the structure before touching anything",
                         "Before writing any code, read through the key files to understand how the codebase is organized.",
-                        null, null, null, null,
+                        null, null, null,
                         List.of("Read the README and understand the project structure",
                                 "Locate the files most relevant to issue #" + issue.getNumber(),
                                 "Read through any existing tests to understand patterns")),

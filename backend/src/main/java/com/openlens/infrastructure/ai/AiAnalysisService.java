@@ -92,11 +92,15 @@ public class AiAnalysisService {
 
         if (!claude.isAvailable()) return null;
 
-        String prPatterns = mergedPrs.stream().limit(5)
-                .map(pr -> "- PR #" + pr.getNumber() + ": " + pr.getTitle()
-                        + (pr.getMergeTimeHours() != null ? ", merged in " + pr.getMergeTimeHours() + "h" : "")
+        String prPatterns = mergedPrs.stream().limit(10)
+                .map(pr -> "- " + pr.getTitle()
+                        + (pr.getMergeTimeHours() != null ? " (merged in " + pr.getMergeTimeHours() + "h)" : "")
                         + (pr.getLinkedIssueNumber() != null ? ", closed #" + pr.getLinkedIssueNumber() : ""))
                 .reduce("", (a, b) -> a + "\n" + b);
+
+        String issueBody = issue.getBody() != null
+                ? issue.getBody().substring(0, Math.min(2000, issue.getBody().length()))
+                : "no description";
 
         String system = """
                 You are generating a contribution guide for OpenLens.
@@ -104,7 +108,15 @@ public class AiAnalysisService {
                 The JSON must have: matchReason (string), estimatedHours (string), steps (array).
                 Each step must have: title, subtitle, body, and optionally code (string), tip (string), warn (string), checklist (array of strings).
                 Generate exactly 8 steps: understand repo, set up locally, find files, make the change, write tests, commit and push, open the PR, handle review.
-                Make the content specific to the issue and repo — include real file path guesses, commit message format, PR title format.
+                
+                CRITICAL RULES:
+                - Read the issue body thoroughly. It usually contains exact file paths, function names, dependencies to install, and acceptance criteria.
+                - Extract every concrete technical detail from the issue: file names, function names, API endpoints, dependencies, config changes needed.
+                - The "find files" step must list the actual files mentioned or implied in the issue — not generic placeholders.
+                - The "make the change" step must describe the exact code change the issue requires, based on what the issue body says.
+                - The "write tests" step must reference the actual test framework used in this repo (check PR titles for hints like vitest, jest, pytest).
+                - The commit message must follow the exact format used in this repo's PR history.
+                - Never use placeholder text like "your_file.ts" or "relevant file" — use real names from the issue.
                 """;
 
         String user = String.format("""
@@ -112,22 +124,27 @@ public class AiAnalysisService {
                 Language: %s
                 
                 Issue #%d: %s
-                Issue body: %s
                 
-                Merged PR patterns in this repo:
+                Full issue body (read this carefully — it contains the technical requirements):
                 %s
                 
-                Generate a complete 8-step contribution guide for issue #%d.
-                Make it practical and specific — include likely file paths, exact commit message format, PR description template.
-                The matchReason should explain in 1-2 sentences why this issue is a good fit.
-                estimatedHours should be like "2-4 hours" based on similar PRs.
-                Return ONLY valid JSON.
+                Merged PR patterns (use for commit message style and merge time estimates):
+                %s
+                
+                Instructions:
+                1. Read the issue body above and extract: exact files to change, what the change should do, any dependencies mentioned, acceptance criteria
+                2. Generate a practical 8-step guide where every step references the actual technical details from the issue
+                3. Step 3 (find files) must list the real files this issue requires touching based on the issue description
+                4. Step 4 (make the change) must describe the exact code change required — not generic advice
+                5. matchReason: 1-2 sentences on why a developer at this skill level should attempt this issue
+                6. estimatedHours: estimate based on PR merge time patterns above
+                
+                Return ONLY valid JSON, nothing else.
                 """,
                 repoName, language,
                 issue.getNumber(), issue.getTitle(),
-                issue.getBody() != null ? issue.getBody().substring(0, Math.min(500, issue.getBody().length())) : "no description",
-                prPatterns,
-                issue.getNumber());
+                issueBody,
+                prPatterns);
 
         try {
             String response = claude.complete(system, user);

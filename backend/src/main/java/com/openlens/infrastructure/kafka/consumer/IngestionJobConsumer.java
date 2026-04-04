@@ -81,7 +81,7 @@ public class IngestionJobConsumer {
             return;
         }
 
-        Repository repo = existing.get();
+        Repository repo = existing.get().withLanguage(language);
         repo.markReady();
         Repository saved = repositoryPort.save(repo);
         Long repoId = saved.getId();

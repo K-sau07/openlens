@@ -49,6 +49,12 @@ github:
     token: ${GITHUB_TOKEN:placeholder}
     rate-limit-buffer: 100
 
+anthropic:
+  api:
+    key: ${ANTHROPIC_API_KEY:placeholder}
+    model: claude-haiku-4-5-20251001
+    max-tokens: 1500
+
 openlens:
   cache:
     repo-ttl-hours: 24

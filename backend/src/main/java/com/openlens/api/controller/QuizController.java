@@ -1,8 +1,11 @@
 package com.openlens.api.controller;
 
 import com.openlens.domain.model.Issue;
+import com.openlens.domain.model.PullRequest;
 import com.openlens.domain.port.output.IssuePort;
+import com.openlens.domain.port.output.PullRequestPort;
 import com.openlens.domain.port.output.RepositoryPort;
+import com.openlens.infrastructure.ai.AiAnalysisService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,19 +17,32 @@ public class QuizController {
 
     private final RepositoryPort repositoryPort;
     private final IssuePort issuePort;
+    private final PullRequestPort pullRequestPort;
+    private final AiAnalysisService aiService;
 
-    public QuizController(RepositoryPort repositoryPort, IssuePort issuePort) {
+    public QuizController(RepositoryPort repositoryPort, IssuePort issuePort,
+                          PullRequestPort pullRequestPort, AiAnalysisService aiService) {
         this.repositoryPort = repositoryPort;
         this.issuePort = issuePort;
+        this.pullRequestPort = pullRequestPort;
+        this.aiService = aiService;
     }
 
     @GetMapping("/{repoId}/questions")
     public ResponseEntity<Map<String, Object>> getQuestions(@PathVariable Long repoId) {
         var repo = repositoryPort.findById(repoId);
         String language = repo.map(r -> r.getPrimaryLanguage()).orElse("unknown");
-        String repoName = repo.map(r -> r.getName()).orElse("this repo");
+        String repoName = repo.map(r -> r.getOwner() + "/" + r.getName()).orElse("this repo");
 
-        List<Map<String, Object>> questions = buildQuestions(language, repoName);
+        List<Issue> issues = issuePort.findOpenByRepoId(repoId);
+        List<PullRequest> mergedPrs = pullRequestPort.findByRepoId(repoId);
+
+        // try AI-generated questions first, fall back to rule-based
+        List<Map<String, Object>> questions = aiService.generateQuizQuestions(repoName, language, issues, mergedPrs);
+        if (questions == null || questions.isEmpty()) {
+            questions = buildQuestions(language, repoName);
+        }
+
         return ResponseEntity.ok(Map.of("questions", questions, "repoId", repoId));
     }
 
@@ -40,10 +56,7 @@ public class QuizController {
         List<Issue> issues = issuePort.findOpenByRepoId(repoId);
         List<Map<String, Object>> matched = matchIssues(issues, skillLevel);
 
-        return ResponseEntity.ok(Map.of(
-                "skillLevel", skillLevel,
-                "matchedIssues", matched
-        ));
+        return ResponseEntity.ok(Map.of("skillLevel", skillLevel, "matchedIssues", matched));
     }
 
     private String scoreAnswers(List<Map<String, Object>> answers) {
@@ -53,28 +66,24 @@ public class QuizController {
                     Object opt = a.get("selectedOption");
                     return opt instanceof Number ? ((Number) opt).intValue() : 0;
                 })
-                .average()
-                .orElse(0);
-        // lower index = more experienced (option 0 = most confident)
+                .average().orElse(0);
         if (avg <= 1.0) return "advanced";
         if (avg <= 2.0) return "intermediate";
         return "beginner";
     }
 
     private List<Map<String, Object>> matchIssues(List<Issue> issues, String skillLevel) {
-        // filter to good-first-issue for beginners, anything for others
         List<Issue> filtered = issues.stream()
                 .filter(i -> {
                     if ("beginner".equals(skillLevel)) {
                         return i.getLabels() != null &&
-                               (i.getLabels().stream().anyMatch(l -> l.toLowerCase().contains("good first") || l.toLowerCase().contains("beginner")));
+                               i.getLabels().stream().anyMatch(l ->
+                                   l.toLowerCase().contains("good first") || l.toLowerCase().contains("beginner"));
                     }
                     return true;
                 })
-                .limit(5)
-                .toList();
+                .limit(5).toList();
 
-        // if no labeled issues found, just take first 3
         if (filtered.isEmpty()) filtered = issues.stream().limit(3).toList();
 
         return filtered.stream().map(i -> {
@@ -108,8 +117,7 @@ public class QuizController {
                         option("Very comfortable", "I can follow any unfamiliar " + lang + " code within a few minutes"),
                         option("Mostly comfortable", "I can follow it with some time and docs open"),
                         option("Some experience", "I get there eventually but it takes a while"),
-                        option("Still learning", "I struggle with unfamiliar codebases")
-                )));
+                        option("Still learning", "I struggle with unfamiliar codebases"))));
 
         qs.add(question("Code reading",
                 "You open an unfamiliar file with 150 lines. What's true for you?",
@@ -118,8 +126,7 @@ public class QuizController {
                         option("I can figure out what it does in a few minutes", "Even without comments I can trace the logic"),
                         option("I can follow it with comments or docs", "I need some anchors to navigate"),
                         option("I need someone to walk me through it", "Large unfamiliar files take me a long time"),
-                        option("I look for the parts I need to change", "I search rather than reading the whole file")
-                )));
+                        option("I look for the parts I need to change", "I search rather than reading the whole file"))));
 
         qs.add(question("Git & PRs",
                 "What's your experience contributing to codebases that aren't yours?",
@@ -128,8 +135,7 @@ public class QuizController {
                         option("I've opened PRs and had them merged", "Full fork → branch → PR → merge cycle done"),
                         option("I've forked and made changes, never opened a PR", "Done the work but never submitted"),
                         option("I mostly work on my own projects", "Haven't contributed to someone else's codebase yet"),
-                        option("Still learning git basics", "Branching and PRs are new to me")
-                )));
+                        option("Still learning git basics", "Branching and PRs are new to me"))));
 
         qs.add(question("Testing",
                 "When you write code, do you write tests for it?",
@@ -138,8 +144,7 @@ public class QuizController {
                         option("Almost always", "Tests are part of how I work"),
                         option("Sometimes", "When it's required or I have time"),
                         option("Rarely", "I test manually but not with automated tests"),
-                        option("I haven't written tests before", "This would be a first")
-                )));
+                        option("I haven't written tests before", "This would be a first"))));
 
         qs.add(question("PR style",
                 "How do you prefer to work when making changes to a codebase?",
@@ -148,8 +153,7 @@ public class QuizController {
                         option("Small focused changes, one thing at a time", "I'd rather do one thing well"),
                         option("I tend to go broad but can scope down", "I refactor nearby things but can hold back"),
                         option("Whatever it takes to fix the issue", "I'll do what the issue needs"),
-                        option("I'm not sure yet — this would be my first PR", "I'll follow whatever the guide recommends")
-                )));
+                        option("I'm not sure yet — this would be my first PR", "I'll follow whatever the guide recommends"))));
 
         return qs;
     }

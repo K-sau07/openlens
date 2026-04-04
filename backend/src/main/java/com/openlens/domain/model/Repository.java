@@ -52,6 +52,10 @@ public class Repository {
         this.status = RepositoryStatus.FAILED;
     }
 
+    public Repository withLanguage(String language) {
+        return new Repository(id, url, owner, name, language, stars, status, lastAnalyzedAt);
+    }
+
     public Long getId() { return id; }
     public String getUrl() { return url; }
     public String getOwner() { return owner; }

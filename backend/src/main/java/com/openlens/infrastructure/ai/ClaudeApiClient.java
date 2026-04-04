@@ -52,6 +52,8 @@ public class ClaudeApiClient {
             return null;
         }
 
+        log.info("calling Claude API — model={} userPromptLength={}", model, userPrompt.length());
+
         try {
             Map<String, Object> body = Map.of(
                     "model", model,
@@ -78,7 +80,9 @@ public class ClaudeApiClient {
             }
 
             JsonNode root = objectMapper.readTree(response.body());
-            return root.path("content").get(0).path("text").asText();
+            String text = root.path("content").get(0).path("text").asText();
+            log.info("Claude API call successful — response length={}", text.length());
+            return text;
 
         } catch (Exception e) {
             log.error("Claude API call failed", e);

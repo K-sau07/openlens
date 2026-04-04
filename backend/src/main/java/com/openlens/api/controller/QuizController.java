@@ -6,6 +6,8 @@ import com.openlens.domain.port.output.IssuePort;
 import com.openlens.domain.port.output.PullRequestPort;
 import com.openlens.domain.port.output.RepositoryPort;
 import com.openlens.infrastructure.ai.AiAnalysisService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,8 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/quiz")
 public class QuizController {
+
+    private static final Logger log = LoggerFactory.getLogger(QuizController.class);
 
     private final RepositoryPort repositoryPort;
     private final IssuePort issuePort;
@@ -34,13 +38,19 @@ public class QuizController {
         String language = repo.map(r -> r.getPrimaryLanguage()).orElse("unknown");
         String repoName = repo.map(r -> r.getOwner() + "/" + r.getName()).orElse("this repo");
 
+        log.info("quiz questions requested — repoId={} language={} repo={}", repoId, language, repoName);
+
         List<Issue> issues = issuePort.findOpenByRepoId(repoId);
         List<PullRequest> mergedPrs = pullRequestPort.findByRepoId(repoId);
 
-        // try AI-generated questions first, fall back to rule-based
+        log.info("loaded {} issues and {} PRs for quiz generation", issues.size(), mergedPrs.size());
+
         List<Map<String, Object>> questions = aiService.generateQuizQuestions(repoName, language, issues, mergedPrs);
         if (questions == null || questions.isEmpty()) {
+            log.warn("AI quiz generation failed or returned empty — falling back to rule-based for repoId={}", repoId);
             questions = buildQuestions(language, repoName);
+        } else {
+            log.info("using AI-generated questions ({} questions) for repoId={}", questions.size(), repoId);
         }
 
         return ResponseEntity.ok(Map.of("questions", questions, "repoId", repoId));

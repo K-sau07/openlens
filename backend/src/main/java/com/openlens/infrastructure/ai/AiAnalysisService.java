@@ -28,7 +28,13 @@ public class AiAnalysisService {
     public List<Map<String, Object>> generateQuizQuestions(
             String repoName, String language, List<Issue> issues, List<PullRequest> mergedPrs) {
 
-        if (!claude.isAvailable()) return null;
+        if (!claude.isAvailable()) {
+            log.warn("Claude API not available — skipping quiz generation for {}", repoName);
+            return null;
+        }
+
+        log.info("generating quiz questions via Claude for repo={} language={} issues={} prs={}",
+                repoName, language, issues.size(), mergedPrs.size());
 
         String issueList = issues.stream().limit(10)
                 .map(i -> "- #" + i.getNumber() + ": " + i.getTitle()
@@ -78,10 +84,16 @@ public class AiAnalysisService {
 
         try {
             String response = claude.complete(system, user);
-            if (response == null) return null;
-            return objectMapper.readValue(response, new TypeReference<>() {});
+            if (response == null) {
+                log.warn("Claude returned null for quiz generation — repo={}", repoName);
+                return null;
+            }
+            log.info("Claude quiz response received ({} chars) for {}", response.length(), repoName);
+            List<Map<String, Object>> questions = objectMapper.readValue(response, new TypeReference<>() {});
+            log.info("parsed {} quiz questions for {}", questions.size(), repoName);
+            return questions;
         } catch (Exception e) {
-            log.error("failed to parse quiz questions from Claude response", e);
+            log.error("failed to parse quiz questions from Claude response for {} — {}", repoName, e.getMessage());
             return null;
         }
     }
@@ -90,7 +102,13 @@ public class AiAnalysisService {
     public Map<String, Object> generateContributionGuide(
             String repoName, String language, Issue issue, List<PullRequest> mergedPrs) {
 
-        if (!claude.isAvailable()) return null;
+        if (!claude.isAvailable()) {
+            log.warn("Claude API not available — skipping guide generation for issue #{}", issue.getNumber());
+            return null;
+        }
+
+        log.info("generating contribution guide via Claude for repo={} issue=#{} language={}",
+                repoName, issue.getNumber(), language);
 
         String prPatterns = mergedPrs.stream().limit(10)
                 .map(pr -> "- " + pr.getTitle()
@@ -148,10 +166,16 @@ public class AiAnalysisService {
 
         try {
             String response = claude.complete(system, user);
-            if (response == null) return null;
-            return objectMapper.readValue(response, new TypeReference<>() {});
+            if (response == null) {
+                log.warn("Claude returned null for guide generation — issue=#{}", issue.getNumber());
+                return null;
+            }
+            log.info("Claude guide response received ({} chars) for issue #{}", response.length(), issue.getNumber());
+            Map<String, Object> guide = objectMapper.readValue(response, new TypeReference<>() {});
+            log.info("parsed guide with {} steps for issue #{}", ((List<?>) guide.getOrDefault("steps", List.of())).size(), issue.getNumber());
+            return guide;
         } catch (Exception e) {
-            log.error("failed to parse contribution guide from Claude response", e);
+            log.error("failed to parse contribution guide from Claude for issue #{} — {}", issue.getNumber(), e.getMessage());
             return null;
         }
     }

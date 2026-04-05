@@ -63,6 +63,11 @@ openlens:
     max-prs: 200
     max-issues: 100
 
+auth:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-key-change-in-production-minimum-32-chars}
+    expiry-days: 7
+
 management:
   endpoints:
     web:

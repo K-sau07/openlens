@@ -2,12 +2,16 @@ package com.openlens.auth.controller;
 
 import com.openlens.auth.service.AuthService;
 import com.openlens.auth.service.JwtService;
+import com.openlens.auth.service.LoginRateLimiter;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +22,16 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
     private final JwtService jwtService;
+    private final LoginRateLimiter rateLimiter;
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService, JwtService jwtService, LoginRateLimiter rateLimiter) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.rateLimiter = rateLimiter;
     }
 
     public record RegisterRequest(
@@ -51,13 +59,28 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req,
+                                    HttpServletRequest request,
                                     HttpServletResponse response) {
+        String ip = getClientIp(request);
+
+        if (!rateLimiter.isAllowed(ip)) {
+            log.warn("login rate limit exceeded for ip={}", ip);
+            return ResponseEntity.status(429).body(Map.of(
+                "error", "too many login attempts — try again in 15 minutes"
+            ));
+        }
+
         try {
             String token = authService.login(req.email(), req.password());
+            rateLimiter.reset(ip); // successful login resets the counter
             setTokenCookie(response, token);
             return ResponseEntity.ok(Map.of("message", "logged in successfully"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+            int remaining = rateLimiter.remainingAttempts(ip);
+            return ResponseEntity.status(401).body(Map.of(
+                "error", e.getMessage(),
+                "attemptsRemaining", remaining
+            ));
         }
     }
 
@@ -84,8 +107,16 @@ public class AuthController {
         Cookie cookie = new Cookie("ol_token", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        cookie.setMaxAge(7 * 24 * 60 * 60);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

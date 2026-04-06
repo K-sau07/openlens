@@ -135,10 +135,15 @@ The domain layer (`domain/model/` and `domain/port/`) has zero dependencies on S
 ## API endpoints
 
 ```
-POST /api/repos/analyze          — submit a repo URL for ingestion
-GET  /api/repos/status?url=...   — poll ingestion status (PROCESSING / READY / FAILED)
-GET  /api/quiz/{repoId}/questions  — get 5 repo-specific quiz questions
-POST /api/quiz/{repoId}/submit   — submit answers, get skill level + matched issues
+POST /api/auth/register              — create account (email, password, name)
+POST /api/auth/login                 — sign in, sets httpOnly JWT cookie
+POST /api/auth/logout                — clears cookie
+GET  /api/auth/me                    — returns current user from JWT
+
+POST /api/repos/analyze              — submit a repo URL for ingestion
+GET  /api/repos/status?url=...       — poll ingestion status (PROCESSING / READY / FAILED)
+GET  /api/quiz/{repoId}/questions    — get 5 repo-specific quiz questions
+POST /api/quiz/{repoId}/submit       — submit answers, get skill level + matched issues
 GET  /api/guide/{repoId}/issues/{issueId}  — get full contribution guide for an issue
 ```
 

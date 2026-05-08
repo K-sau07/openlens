@@ -42,7 +42,7 @@ infrastructure/
   github/               — GitHub REST API client (virtual threads)
   kafka/                — producer + consumer for ingestion jobs
   persistence/          — JPA entities + adapters
-  redis/                — cache adapter
+  redis/                — RedisConfig, BriefCacheAdapter (BriefCachePort impl), GuideCacheAdapter (per-issue guide cache)
 ```
 
 ## API endpoints

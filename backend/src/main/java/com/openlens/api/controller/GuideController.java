@@ -6,6 +6,9 @@ import com.openlens.domain.port.output.IssuePort;
 import com.openlens.domain.port.output.PullRequestPort;
 import com.openlens.domain.port.output.RepositoryPort;
 import com.openlens.infrastructure.ai.AiAnalysisService;
+import com.openlens.infrastructure.redis.GuideCacheAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,22 +18,34 @@ import java.util.*;
 @RequestMapping("/api/guide")
 public class GuideController {
 
+    private static final Logger log = LoggerFactory.getLogger(GuideController.class);
+
     private final RepositoryPort repositoryPort;
     private final IssuePort issuePort;
     private final PullRequestPort pullRequestPort;
     private final AiAnalysisService aiService;
+    private final GuideCacheAdapter guideCache;
 
     public GuideController(RepositoryPort repositoryPort, IssuePort issuePort,
-                           PullRequestPort pullRequestPort, AiAnalysisService aiService) {
+                           PullRequestPort pullRequestPort, AiAnalysisService aiService,
+                           GuideCacheAdapter guideCache) {
         this.repositoryPort = repositoryPort;
         this.issuePort = issuePort;
         this.pullRequestPort = pullRequestPort;
         this.aiService = aiService;
+        this.guideCache = guideCache;
     }
 
     @GetMapping("/{repoId}/issues/{issueId}")
     public ResponseEntity<Map<String, Object>> getGuide(
             @PathVariable Long repoId, @PathVariable Long issueId) {
+
+        // check cache before doing any work
+        Optional<Map<String, Object>> cached = guideCache.get(repoId, issueId);
+        if (cached.isPresent()) {
+            log.info("serving cached guide for repo={} issue={}", repoId, issueId);
+            return ResponseEntity.ok(cached.get());
+        }
 
         var repoOpt = repositoryPort.findById(repoId);
         if (repoOpt.isEmpty()) return ResponseEntity.notFound().build();
@@ -46,26 +61,29 @@ public class GuideController {
         String repoName = repo.getOwner() + "/" + repo.getName();
         String language = repo.getPrimaryLanguage() != null ? repo.getPrimaryLanguage() : "unknown";
 
-        // try AI-generated guide first, fall back to rule-based
-        Map<String, Object> aiGuide = aiService.generateContributionGuide(repoName, language, issue, mergedPrs);
-
         Map<String, Object> repoInfo = buildRepoInfo(repo, repoName, mergedPrs);
         Map<String, Object> issueInfo = buildIssueInfo(issue);
+
+        // try AI-generated guide first, fall back to rule-based
+        Map<String, Object> aiGuide = aiService.generateContributionGuide(repoName, language, issue, mergedPrs);
 
         if (aiGuide != null) {
             aiGuide.put("repo", repoInfo);
             aiGuide.put("issue", issueInfo);
+            guideCache.put(repoId, issueId, aiGuide);
             return ResponseEntity.ok(aiGuide);
         }
 
-        // rule-based fallback
-        return ResponseEntity.ok(Map.of(
-                "repo", repoInfo,
-                "issue", issueInfo,
-                "matchReason", "Matched to your skill level based on issue complexity and your quiz answers.",
-                "estimatedHours", "2–4 hours",
-                "steps", buildSteps(issue, repo.getName(), mergedPrs)
-        ));
+        // rule-based fallback — still worth caching
+        Map<String, Object> fallback = new LinkedHashMap<>();
+        fallback.put("repo", repoInfo);
+        fallback.put("issue", issueInfo);
+        fallback.put("matchReason", "Matched to your skill level based on issue complexity and your quiz answers.");
+        fallback.put("estimatedHours", "2-4 hours");
+        fallback.put("steps", buildSteps(issue, repo.getName(), mergedPrs));
+
+        guideCache.put(repoId, issueId, fallback);
+        return ResponseEntity.ok(fallback);
     }
 
     private Map<String, Object> buildRepoInfo(com.openlens.domain.model.Repository repo,
@@ -139,7 +157,7 @@ public class GuideController {
                 step("Handle review feedback", "What to do when the maintainer responds",
                         "Push new commits to the same branch — don't open a new PR. Respond to every comment.",
                         null,
-                        !mergedPrs.isEmpty() ? "Based on PR history in this repo, expect 1–2 rounds of feedback." : null,
+                        !mergedPrs.isEmpty() ? "Based on PR history in this repo, expect 1-2 rounds of feedback." : null,
                         null,
                         List.of("PR submitted and waiting for review"))
         );

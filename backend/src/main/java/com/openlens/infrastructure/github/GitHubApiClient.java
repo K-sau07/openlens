@@ -217,6 +217,19 @@ public class GitHubApiClient implements GitHubDataPort {
         List<String> labels = new ArrayList<>();
         node.get("labels").forEach(l -> labels.add(l.get("name").asText()));
 
+        int commentCount = node.path("comments").asInt(0);
+        String author = node.path("user").path("login").asText(null);
+
+        String assignee = null;
+        JsonNode assigneeNode = node.get("assignee");
+        if (assigneeNode != null && !assigneeNode.isNull()) {
+            assignee = assigneeNode.path("login").asText(null);
+        }
+
+        int reactionsCount = node.path("reactions").path("total_count").asInt(0);
+        LocalDateTime createdAt = parseTimestamp(node, "created_at");
+        LocalDateTime updatedAt = parseTimestamp(node, "updated_at");
+
         return new Issue(
                 node.get("number").asLong(),
                 null,
@@ -225,7 +238,13 @@ public class GitHubApiClient implements GitHubDataPort {
                 node.has("body") && !node.get("body").isNull() ? node.get("body").asText() : "",
                 labels,
                 node.get("state").asText(),
-                null
+                null,
+                commentCount,
+                author,
+                assignee,
+                reactionsCount,
+                createdAt,
+                updatedAt
         );
     }
 

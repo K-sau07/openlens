@@ -17,14 +17,12 @@ public class IssueEntity {
     @Column(nullable = false)
     private int number;
 
-    @Column(nullable = false, length = 512)
+    @Column(nullable = false, length = 1024)
     private String title;
 
     @Column(columnDefinition = "text")
     private String body;
 
-    // stored as comma-separated string — simple and queryable enough for now
-    @Column
     private String labels;
 
     @Column(nullable = false, length = 20)
@@ -32,6 +30,22 @@ public class IssueEntity {
 
     @Column(name = "complexity_score")
     private Integer complexityScore;
+
+    @Column(name = "comment_count")
+    private int commentCount;
+
+    private String author;
+
+    private String assignee;
+
+    @Column(name = "reactions_count")
+    private int reactionsCount;
+
+    @Column(name = "github_created_at")
+    private LocalDateTime githubCreatedAt;
+
+    @Column(name = "github_updated_at")
+    private LocalDateTime githubUpdatedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -57,5 +71,17 @@ public class IssueEntity {
     public void setState(String state) { this.state = state; }
     public Integer getComplexityScore() { return complexityScore; }
     public void setComplexityScore(Integer complexityScore) { this.complexityScore = complexityScore; }
+    public int getCommentCount() { return commentCount; }
+    public void setCommentCount(int commentCount) { this.commentCount = commentCount; }
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
+    public String getAssignee() { return assignee; }
+    public void setAssignee(String assignee) { this.assignee = assignee; }
+    public int getReactionsCount() { return reactionsCount; }
+    public void setReactionsCount(int reactionsCount) { this.reactionsCount = reactionsCount; }
+    public LocalDateTime getGithubCreatedAt() { return githubCreatedAt; }
+    public void setGithubCreatedAt(LocalDateTime githubCreatedAt) { this.githubCreatedAt = githubCreatedAt; }
+    public LocalDateTime getGithubUpdatedAt() { return githubUpdatedAt; }
+    public void setGithubUpdatedAt(LocalDateTime githubUpdatedAt) { this.githubUpdatedAt = githubUpdatedAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

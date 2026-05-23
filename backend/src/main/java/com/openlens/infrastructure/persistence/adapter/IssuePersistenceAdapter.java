@@ -44,11 +44,17 @@ public class IssuePersistenceAdapter implements IssuePort {
         entity.setLabels(issue.getLabels() != null ? String.join(",", issue.getLabels()) : null);
         entity.setState(issue.getState());
         entity.setComplexityScore(issue.getComplexityScore());
+        entity.setCommentCount(issue.getCommentCount());
+        entity.setAuthor(issue.getAuthor());
+        entity.setAssignee(issue.getAssignee());
+        entity.setReactionsCount(issue.getReactionsCount());
+        entity.setGithubCreatedAt(issue.getGithubCreatedAt());
+        entity.setGithubUpdatedAt(issue.getGithubUpdatedAt());
         return entity;
     }
 
     private Issue toDomain(IssueEntity entity) {
-        List<String> labels = entity.getLabels() != null
+        List<String> labels = entity.getLabels() != null && !entity.getLabels().isBlank()
                 ? Arrays.asList(entity.getLabels().split(","))
                 : List.of();
         return new Issue(
@@ -59,7 +65,13 @@ public class IssuePersistenceAdapter implements IssuePort {
                 entity.getBody(),
                 labels,
                 entity.getState(),
-                entity.getComplexityScore()
+                entity.getComplexityScore(),
+                entity.getCommentCount(),
+                entity.getAuthor(),
+                entity.getAssignee(),
+                entity.getReactionsCount(),
+                entity.getGithubCreatedAt(),
+                entity.getGithubUpdatedAt()
         );
     }
 }

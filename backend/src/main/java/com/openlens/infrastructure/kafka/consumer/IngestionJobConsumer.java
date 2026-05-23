@@ -108,7 +108,9 @@ public class IngestionJobConsumer {
 
         List<Issue> stamped = issues.stream()
                 .map(i -> new Issue(i.getId(), repoId, i.getNumber(), i.getTitle(),
-                        i.getBody(), i.getLabels(), i.getState(), i.getComplexityScore()))
+                        i.getBody(), i.getLabels(), i.getState(), i.getComplexityScore(),
+                        i.getCommentCount(), i.getAuthor(), i.getAssignee(),
+                        i.getReactionsCount(), i.getGithubCreatedAt(), i.getGithubUpdatedAt()))
                 .toList();
 
         List<PullRequest> stampedPrs = mergedPrs.stream()

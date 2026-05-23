@@ -5,6 +5,7 @@ import com.openlens.domain.model.Issue;
 import com.openlens.domain.model.PullRequest;
 import com.openlens.domain.model.Repository;
 import com.openlens.domain.port.output.GitHubDataPort;
+import com.openlens.domain.port.output.GitHubDataPort.RepoMetadata;
 import com.openlens.domain.port.output.IssuePort;
 import com.openlens.domain.port.output.PullRequestPort;
 import com.openlens.domain.port.output.RepositoryPort;
@@ -68,12 +69,14 @@ public class IngestionJobConsumer {
     private void runIngestion(String repoUrl, String owner, String repoName) {
         log.info("starting GitHub data fetch for {}/{}", owner, repoName);
 
-        String language = gitHubDataPort.fetchPrimaryLanguage(owner, repoName);
+        // single call gets everything from the repo endpoint — replaces the old fetchPrimaryLanguage
+        RepoMetadata metadata = gitHubDataPort.fetchRepoMetadata(owner, repoName);
+        Map<String, Long> languages = gitHubDataPort.fetchLanguages(owner, repoName);
         List<Issue> issues = gitHubDataPort.fetchOpenIssues(owner, repoName);
         List<PullRequest> mergedPrs = gitHubDataPort.fetchMergedPullRequests(owner, repoName, 50);
 
-        log.info("fetched {} issues and {} merged PRs for {}/{}",
-                issues.size(), mergedPrs.size(), owner, repoName);
+        log.info("fetched metadata, {} languages, {} issues, {} merged PRs for {}/{}",
+                languages.size(), issues.size(), mergedPrs.size(), owner, repoName);
 
         Optional<Repository> existing = repositoryPort.findByUrl(repoUrl);
         if (existing.isEmpty()) {
@@ -81,12 +84,28 @@ public class IngestionJobConsumer {
             return;
         }
 
-        Repository repo = existing.get().withLanguage(language);
+        Repository repo = existing.get()
+                .withLanguage(metadata.primaryLanguage())
+                .withMetadata(
+                        metadata.description(),
+                        metadata.topics(),
+                        metadata.forkCount(),
+                        metadata.watchersCount(),
+                        metadata.openIssuesCount(),
+                        metadata.license(),
+                        metadata.defaultBranch(),
+                        metadata.hasWiki(),
+                        metadata.hasDiscussions(),
+                        metadata.createdAt(),
+                        metadata.lastPushedAt(),
+                        metadata.stars()
+                )
+                .withLanguages(languages);
+
         repo.markReady();
         Repository saved = repositoryPort.save(repo);
         Long repoId = saved.getId();
 
-        // stamp the database repo ID onto every issue and PR before saving
         List<Issue> stamped = issues.stream()
                 .map(i -> new Issue(i.getId(), repoId, i.getNumber(), i.getTitle(),
                         i.getBody(), i.getLabels(), i.getState(), i.getComplexityScore()))
@@ -102,8 +121,9 @@ public class IngestionJobConsumer {
         issuePort.saveAll(stamped);
         pullRequestPort.saveAll(stampedPrs);
 
-        log.info("ingestion complete for {} — {} issues, {} PRs persisted, language: {}",
-                repoUrl, stamped.size(), stampedPrs.size(), language);
+        log.info("ingestion complete for {} — {} issues, {} PRs, {} languages, license: {}, stars: {}",
+                repoUrl, stamped.size(), stampedPrs.size(), languages.size(),
+                metadata.license(), metadata.stars());
     }
 
     private void markIngesting(String repoUrl) {

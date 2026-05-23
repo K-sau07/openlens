@@ -2,6 +2,7 @@ package com.openlens.api.controller;
 
 import com.openlens.api.dto.request.AnalyzeRepoRequest;
 import com.openlens.api.dto.response.AnalyzeRepoResponse;
+import com.openlens.api.dto.response.RepoProfileResponse;
 import com.openlens.domain.model.Repository;
 import com.openlens.domain.model.RepositoryStatus;
 import com.openlens.domain.model.SkillLevel;
@@ -43,6 +44,22 @@ public class RepositoryController {
         ));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RepoProfileResponse> getRepoProfile(@PathVariable Long id) {
+        Optional<Repository> repoOpt = repositoryPort.findById(id);
+        if (repoOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Repository r = repoOpt.get();
+        return ResponseEntity.ok(new RepoProfileResponse(
+                r.getId(), r.getUrl(), r.getOwner(), r.getName(),
+                r.getDescription(), r.getPrimaryLanguage(), r.getStars(),
+                r.getForkCount(), r.getWatchersCount(), r.getOpenIssuesCount(),
+                r.getLicense(), r.getDefaultBranch(), r.getTopics(), r.getLanguages(),
+                r.isHasWiki(), r.isHasDiscussions(), r.getCreatedAtGitHub(),
+                r.getLastPushedAt(), r.getStatus().name(), r.getLastAnalyzedAt()
+        ));
+    }
+
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status(@RequestParam String url) {
         Optional<Repository> repo = repositoryPort.findByUrl(url);
@@ -54,7 +71,6 @@ public class RepositoryController {
         Repository r = repo.get();
         String status = r.getStatus().name();
 
-        // map internal INGESTING/ANALYZING to PROCESSING for the frontend
         if (status.equals("INGESTING") || status.equals("ANALYZING")) {
             status = "PROCESSING";
         }

@@ -17,11 +17,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.*;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 @Component
 public class GitHubApiClient implements GitHubDataPort {
@@ -39,10 +36,72 @@ public class GitHubApiClient implements GitHubDataPort {
             @Value("${github.api.token}") String token) {
         this.objectMapper = objectMapper;
         this.token = token;
-        // virtual thread per task — each API call gets its own lightweight thread
         this.httpClient = HttpClient.newBuilder()
                 .executor(Executors.newVirtualThreadPerTaskExecutor())
                 .build();
+    }
+
+    @Override
+    public RepoMetadata fetchRepoMetadata(String owner, String repoName) {
+        log.debug("fetching repo metadata for {}/{}", owner, repoName);
+        String url = BASE_URL + "/repos/" + owner + "/" + repoName;
+        try {
+            JsonNode node = get(url);
+
+            String description = textOrNull(node, "description");
+
+            List<String> topics = new ArrayList<>();
+            if (node.has("topics") && node.get("topics").isArray()) {
+                node.get("topics").forEach(t -> topics.add(t.asText()));
+            }
+
+            String language = textOrNull(node, "language");
+            if (language == null) language = "unknown";
+
+            int stars = node.path("stargazers_count").asInt(0);
+            int forks = node.path("forks_count").asInt(0);
+            int watchers = node.path("subscribers_count").asInt(0);
+            int openIssues = node.path("open_issues_count").asInt(0);
+
+            String license = null;
+            JsonNode licenseNode = node.get("license");
+            if (licenseNode != null && !licenseNode.isNull() && licenseNode.has("spdx_id")) {
+                license = licenseNode.get("spdx_id").asText();
+                if ("NOASSERTION".equals(license)) license = null;
+            }
+
+            String defaultBranch = node.path("default_branch").asText("main");
+            boolean hasWiki = node.path("has_wiki").asBoolean(false);
+            boolean hasDiscussions = node.path("has_discussions").asBoolean(false);
+
+            LocalDateTime createdAt = parseTimestamp(node, "created_at");
+            LocalDateTime pushedAt = parseTimestamp(node, "pushed_at");
+
+            return new RepoMetadata(description, topics, language, stars, forks,
+                    watchers, openIssues, license, defaultBranch, hasWiki,
+                    hasDiscussions, createdAt, pushedAt);
+
+        } catch (Exception e) {
+            log.error("failed to fetch metadata for {}/{}", owner, repoName, e);
+            return new RepoMetadata(null, List.of(), "unknown", 0, 0, 0, 0,
+                    null, "main", false, false, null, null);
+        }
+    }
+
+    @Override
+    public Map<String, Long> fetchLanguages(String owner, String repoName) {
+        log.debug("fetching languages breakdown for {}/{}", owner, repoName);
+        String url = BASE_URL + "/repos/" + owner + "/" + repoName + "/languages";
+        try {
+            JsonNode node = get(url);
+            Map<String, Long> languages = new LinkedHashMap<>();
+            node.fields().forEachRemaining(entry ->
+                    languages.put(entry.getKey(), entry.getValue().asLong(0)));
+            return languages;
+        } catch (Exception e) {
+            log.error("failed to fetch languages for {}/{}", owner, repoName, e);
+            return Map.of();
+        }
     }
 
     @Override
@@ -53,7 +112,6 @@ public class GitHubApiClient implements GitHubDataPort {
             JsonNode response = get(url);
             List<Issue> issues = new ArrayList<>();
             for (JsonNode node : response) {
-                // skip pull requests — GitHub issues API returns both
                 if (node.has("pull_request")) continue;
                 issues.add(mapIssue(node));
             }
@@ -137,6 +195,22 @@ public class GitHubApiClient implements GitHubDataPort {
         }
 
         return objectMapper.readTree(response.body());
+    }
+
+    private String textOrNull(JsonNode node, String field) {
+        JsonNode value = node.get(field);
+        if (value == null || value.isNull()) return null;
+        return value.asText();
+    }
+
+    private LocalDateTime parseTimestamp(JsonNode node, String field) {
+        JsonNode value = node.get(field);
+        if (value == null || value.isNull()) return null;
+        try {
+            return LocalDateTime.parse(value.asText().replace("Z", ""), GH_DATE);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private Issue mapIssue(JsonNode node) {

@@ -8,6 +8,8 @@ import com.openlens.infrastructure.persistence.repository.RepositoryJpaRepositor
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -50,6 +52,18 @@ public class RepositoryPersistenceAdapter implements RepositoryPort {
         entity.setName(repo.getName());
         entity.setPrimaryLanguage(repo.getPrimaryLanguage());
         entity.setStars(repo.getStars());
+        entity.setDescription(repo.getDescription());
+        entity.setTopics(repo.getTopics());
+        entity.setForkCount(repo.getForkCount());
+        entity.setWatchersCount(repo.getWatchersCount());
+        entity.setOpenIssuesCount(repo.getOpenIssuesCount());
+        entity.setLicense(repo.getLicense());
+        entity.setDefaultBranch(repo.getDefaultBranch());
+        entity.setLanguages(repo.getLanguages());
+        entity.setHasWiki(repo.isHasWiki());
+        entity.setHasDiscussions(repo.isHasDiscussions());
+        entity.setCreatedAtGitHub(repo.getCreatedAtGitHub());
+        entity.setLastPushedAt(repo.getLastPushedAt());
         entity.setStatus(repo.getStatus().name());
         entity.setLastAnalyzedAt(repo.getLastAnalyzedAt());
         return entity;
@@ -63,6 +77,18 @@ public class RepositoryPersistenceAdapter implements RepositoryPort {
                 entity.getName(),
                 entity.getPrimaryLanguage(),
                 entity.getStars(),
+                entity.getDescription(),
+                entity.getTopics() != null ? entity.getTopics() : List.of(),
+                entity.getForkCount(),
+                entity.getWatchersCount(),
+                entity.getOpenIssuesCount(),
+                entity.getLicense(),
+                entity.getDefaultBranch(),
+                entity.getLanguages() != null ? entity.getLanguages() : Map.of(),
+                entity.isHasWiki(),
+                entity.isHasDiscussions(),
+                entity.getCreatedAtGitHub(),
+                entity.getLastPushedAt(),
                 RepositoryStatus.valueOf(entity.getStatus()),
                 entity.getLastAnalyzedAt()
         );

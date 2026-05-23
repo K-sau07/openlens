@@ -45,7 +45,6 @@ public class ClaudeApiClient {
         return apiKey != null && !apiKey.equals("placeholder") && apiKey.startsWith("sk-ant");
     }
 
-    // sends a prompt to Claude and returns the text response
     public String complete(String systemPrompt, String userPrompt) {
         if (!isAvailable()) {
             log.warn("Claude API key not configured — skipping AI call");
@@ -82,11 +81,27 @@ public class ClaudeApiClient {
             JsonNode root = objectMapper.readTree(response.body());
             String text = root.path("content").get(0).path("text").asText();
             log.info("Claude API call successful — response length={}", text.length());
-            return text;
+            return stripMarkdownFences(text);
 
         } catch (Exception e) {
             log.error("Claude API call failed", e);
             return null;
         }
+    }
+
+    // Claude sometimes wraps JSON in markdown code fences despite being told not to
+    private String stripMarkdownFences(String text) {
+        if (text == null) return null;
+        String trimmed = text.trim();
+        if (trimmed.startsWith("```")) {
+            int firstNewline = trimmed.indexOf('\n');
+            if (firstNewline != -1) {
+                trimmed = trimmed.substring(firstNewline + 1);
+            }
+            if (trimmed.endsWith("```")) {
+                trimmed = trimmed.substring(0, trimmed.length() - 3).trim();
+            }
+        }
+        return trimmed;
     }
 }

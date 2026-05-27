@@ -46,12 +46,12 @@ server:
 github:
   api:
     base-url: https://api.github.com
-    token: ${GITHUB_TOKEN:placeholder}
+    token: ${env.GITHUB_TOKEN:placeholder}
     rate-limit-buffer: 100
 
 anthropic:
   api:
-    key: ${ANTHROPIC_API_KEY:placeholder}
+    key: ${env.ANTHROPIC_API_KEY:placeholder}
     model: claude-haiku-4-5-20251001
     max-tokens: 3000
 
@@ -67,7 +67,7 @@ openlens:
 
 auth:
   jwt:
-    secret: ${JWT_SECRET:dev-secret-key-change-in-production-minimum-32-chars}
+    secret: ${env.JWT_SECRET:dev-secret-key-change-in-production-minimum-32-chars}
     expiry-days: 7
   cookie:
     name: ol_token

@@ -50,18 +50,18 @@ public class PullRequestPersistenceAdapter implements PullRequestPort {
     }
 
     private PullRequest toDomain(PullRequestEntity entity) {
-        return new PullRequest(
-                entity.getId(),
-                entity.getRepoId(),
-                entity.getNumber(),
-                entity.getTitle(),
-                entity.getFilesChanged(),
-                entity.getLinesAdded(),
-                entity.getLinesRemoved(),
-                entity.getMergeTimeHours(),
-                entity.getLinkedIssueNumber(),
-                entity.getAuthor(),
-                entity.getMergedAt()
-        );
+        return PullRequest.builder()
+                .id(entity.getId())
+                .repoId(entity.getRepoId())
+                .number(entity.getNumber())
+                .title(entity.getTitle())
+                .filesChanged(entity.getFilesChanged())
+                .linesAdded(entity.getLinesAdded())
+                .linesRemoved(entity.getLinesRemoved())
+                .mergeTimeHours(entity.getMergeTimeHours())
+                .linkedIssueNumber(entity.getLinkedIssueNumber())
+                .author(entity.getAuthor())
+                .mergedAt(entity.getMergedAt())
+                .build();
     }
 }

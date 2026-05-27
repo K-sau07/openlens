@@ -106,17 +106,11 @@ public class IngestionJobConsumer {
         Long repoId = saved.getId();
 
         List<Issue> stamped = issues.stream()
-                .map(i -> new Issue(i.getId(), repoId, i.getNumber(), i.getTitle(),
-                        i.getBody(), i.getLabels(), i.getState(), i.getComplexityScore(),
-                        i.getCommentCount(), i.getAuthor(), i.getAssignee(),
-                        i.getReactionsCount(), i.getGithubCreatedAt(), i.getGithubUpdatedAt()))
+                .map(i -> i.toBuilder().repoId(repoId).build())
                 .toList();
 
         List<PullRequest> stampedPrs = mergedPrs.stream()
-                .map(pr -> new PullRequest(pr.getId(), repoId, pr.getNumber(), pr.getTitle(),
-                        pr.getFilesChanged(), pr.getLinesAdded(), pr.getLinesRemoved(),
-                        pr.getMergeTimeHours(), pr.getLinkedIssueNumber(),
-                        pr.getAuthor(), pr.getMergedAt()))
+                .map(pr -> pr.toBuilder().repoId(repoId).build())
                 .toList();
 
         issuePort.saveAll(stamped);

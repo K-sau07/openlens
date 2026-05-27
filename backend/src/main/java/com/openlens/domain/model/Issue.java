@@ -20,31 +20,21 @@ public class Issue {
     private final LocalDateTime githubUpdatedAt;
     private Integer complexityScore;
 
-    public Issue(Long id, Long repoId, int number, String title, String body,
-                 List<String> labels, String state, Integer complexityScore) {
-        this(id, repoId, number, title, body, labels, state, complexityScore,
-                0, null, null, 0, null, null);
-    }
-
-    public Issue(Long id, Long repoId, int number, String title, String body,
-                 List<String> labels, String state, Integer complexityScore,
-                 int commentCount, String author, String assignee,
-                 int reactionsCount, LocalDateTime githubCreatedAt,
-                 LocalDateTime githubUpdatedAt) {
-        this.id = id;
-        this.repoId = repoId;
-        this.number = number;
-        this.title = title;
-        this.body = body;
-        this.labels = labels;
-        this.state = state;
-        this.complexityScore = complexityScore;
-        this.commentCount = commentCount;
-        this.author = author;
-        this.assignee = assignee;
-        this.reactionsCount = reactionsCount;
-        this.githubCreatedAt = githubCreatedAt;
-        this.githubUpdatedAt = githubUpdatedAt;
+    private Issue(Builder builder) {
+        this.id = builder.id;
+        this.repoId = builder.repoId;
+        this.number = builder.number;
+        this.title = builder.title;
+        this.body = builder.body;
+        this.labels = builder.labels != null ? builder.labels : List.of();
+        this.state = builder.state;
+        this.complexityScore = builder.complexityScore;
+        this.commentCount = builder.commentCount;
+        this.author = builder.author;
+        this.assignee = builder.assignee;
+        this.reactionsCount = builder.reactionsCount;
+        this.githubCreatedAt = builder.githubCreatedAt;
+        this.githubUpdatedAt = builder.githubUpdatedAt;
     }
 
     public boolean isOpen() {
@@ -72,6 +62,19 @@ public class Issue {
         return githubUpdatedAt.isBefore(LocalDateTime.now().minusMonths(6));
     }
 
+    public Builder toBuilder() {
+        return new Builder()
+                .id(id).repoId(repoId).number(number).title(title).body(body)
+                .labels(labels).state(state).complexityScore(complexityScore)
+                .commentCount(commentCount).author(author).assignee(assignee)
+                .reactionsCount(reactionsCount).githubCreatedAt(githubCreatedAt)
+                .githubUpdatedAt(githubUpdatedAt);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public Long getId() { return id; }
     public Long getRepoId() { return repoId; }
     public int getNumber() { return number; }
@@ -86,4 +89,40 @@ public class Issue {
     public int getReactionsCount() { return reactionsCount; }
     public LocalDateTime getGithubCreatedAt() { return githubCreatedAt; }
     public LocalDateTime getGithubUpdatedAt() { return githubUpdatedAt; }
+
+    public static class Builder {
+        private Long id;
+        private Long repoId;
+        private int number;
+        private String title;
+        private String body;
+        private List<String> labels;
+        private String state;
+        private Integer complexityScore;
+        private int commentCount;
+        private String author;
+        private String assignee;
+        private int reactionsCount;
+        private LocalDateTime githubCreatedAt;
+        private LocalDateTime githubUpdatedAt;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder repoId(Long repoId) { this.repoId = repoId; return this; }
+        public Builder number(int number) { this.number = number; return this; }
+        public Builder title(String title) { this.title = title; return this; }
+        public Builder body(String body) { this.body = body; return this; }
+        public Builder labels(List<String> labels) { this.labels = labels; return this; }
+        public Builder state(String state) { this.state = state; return this; }
+        public Builder complexityScore(Integer complexityScore) { this.complexityScore = complexityScore; return this; }
+        public Builder commentCount(int commentCount) { this.commentCount = commentCount; return this; }
+        public Builder author(String author) { this.author = author; return this; }
+        public Builder assignee(String assignee) { this.assignee = assignee; return this; }
+        public Builder reactionsCount(int reactionsCount) { this.reactionsCount = reactionsCount; return this; }
+        public Builder githubCreatedAt(LocalDateTime githubCreatedAt) { this.githubCreatedAt = githubCreatedAt; return this; }
+        public Builder githubUpdatedAt(LocalDateTime githubUpdatedAt) { this.githubUpdatedAt = githubUpdatedAt; return this; }
+
+        public Issue build() {
+            return new Issue(this);
+        }
+    }
 }

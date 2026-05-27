@@ -230,22 +230,20 @@ public class GitHubApiClient implements GitHubDataPort {
         LocalDateTime createdAt = parseTimestamp(node, "created_at");
         LocalDateTime updatedAt = parseTimestamp(node, "updated_at");
 
-        return new Issue(
-                node.get("number").asLong(),
-                null,
-                node.get("number").asInt(),
-                node.get("title").asText(),
-                node.has("body") && !node.get("body").isNull() ? node.get("body").asText() : "",
-                labels,
-                node.get("state").asText(),
-                null,
-                commentCount,
-                author,
-                assignee,
-                reactionsCount,
-                createdAt,
-                updatedAt
-        );
+        return Issue.builder()
+                .id(node.get("number").asLong())
+                .number(node.get("number").asInt())
+                .title(node.get("title").asText())
+                .body(node.has("body") && !node.get("body").isNull() ? node.get("body").asText() : "")
+                .labels(labels)
+                .state(node.get("state").asText())
+                .commentCount(commentCount)
+                .author(author)
+                .assignee(assignee)
+                .reactionsCount(reactionsCount)
+                .githubCreatedAt(createdAt)
+                .githubUpdatedAt(updatedAt)
+                .build();
     }
 
     private PullRequest mapPullRequest(JsonNode node) {
@@ -268,18 +266,14 @@ public class GitHubApiClient implements GitHubDataPort {
             }
         }
 
-        return new PullRequest(
-                node.get("number").asLong(),
-                null,
-                node.get("number").asInt(),
-                node.get("title").asText(),
-                0,
-                0,
-                0,
-                (int) hours,
-                linkedIssue,
-                node.get("user").get("login").asText(),
-                merged
-        );
+        return PullRequest.builder()
+                .id(node.get("number").asLong())
+                .number(node.get("number").asInt())
+                .title(node.get("title").asText())
+                .mergeTimeHours((int) hours)
+                .linkedIssueNumber(linkedIssue)
+                .author(node.get("user").get("login").asText())
+                .mergedAt(merged)
+                .build();
     }
 }

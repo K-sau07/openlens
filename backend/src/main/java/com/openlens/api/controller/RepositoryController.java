@@ -30,10 +30,8 @@ public class RepositoryController {
 
     @PostMapping("/analyze")
     public ResponseEntity<AnalyzeRepoResponse> analyze(@Valid @RequestBody AnalyzeRepoRequest request) {
-        SkillLevel level = parseSkillLevel(request.skillLevel());
-
         AnalyzeRepositoryUseCase.AnalysisResponse result = analyzeRepositoryUseCase.analyze(
-                request.repoUrl(), level);
+                request.repoUrl(), SkillLevel.fromString(request.skillLevel()));
 
         return ResponseEntity.accepted().body(new AnalyzeRepoResponse(
                 result.repoUrl(), result.jobId(), result.status()));
@@ -49,15 +47,6 @@ public class RepositoryController {
     public ResponseEntity<RepoStatusResponse> status(@RequestParam String url) {
         GetRepoStatusUseCase.RepoStatusOutput output = getRepoStatusUseCase.getStatus(url);
         return ResponseEntity.ok(new RepoStatusResponse(output.status(), output.repoId()));
-    }
-
-    private SkillLevel parseSkillLevel(String raw) {
-        if (raw == null || raw.isBlank()) return SkillLevel.BEGINNER;
-        try {
-            return SkillLevel.valueOf(raw.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return SkillLevel.BEGINNER;
-        }
     }
 
     private RepoProfileResponse toProfileResponse(GetRepoProfileUseCase.RepoProfileOutput o) {

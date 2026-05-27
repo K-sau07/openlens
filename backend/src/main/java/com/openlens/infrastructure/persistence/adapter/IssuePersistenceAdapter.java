@@ -7,6 +7,7 @@ import com.openlens.infrastructure.persistence.repository.IssueJpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class IssuePersistenceAdapter implements IssuePort {
@@ -34,6 +35,11 @@ public class IssuePersistenceAdapter implements IssuePort {
                 .toList();
     }
 
+    @Override
+    public Optional<Issue> findById(Long issueId) {
+        return issueJpaRepository.findById(issueId).map(this::toDomain);
+    }
+
     private IssueEntity toEntity(Issue issue) {
         IssueEntity entity = new IssueEntity();
         entity.setRepoId(issue.getRepoId());
@@ -53,21 +59,21 @@ public class IssuePersistenceAdapter implements IssuePort {
     }
 
     private Issue toDomain(IssueEntity entity) {
-        return new Issue(
-                entity.getId(),
-                entity.getRepoId(),
-                entity.getNumber(),
-                entity.getTitle(),
-                entity.getBody(),
-                entity.getLabels() != null ? entity.getLabels() : List.of(),
-                entity.getState(),
-                entity.getComplexityScore(),
-                entity.getCommentCount(),
-                entity.getAuthor(),
-                entity.getAssignee(),
-                entity.getReactionsCount(),
-                entity.getGithubCreatedAt(),
-                entity.getGithubUpdatedAt()
-        );
+        return Issue.builder()
+                .id(entity.getId())
+                .repoId(entity.getRepoId())
+                .number(entity.getNumber())
+                .title(entity.getTitle())
+                .body(entity.getBody())
+                .labels(entity.getLabels() != null ? entity.getLabels() : List.of())
+                .state(entity.getState())
+                .complexityScore(entity.getComplexityScore())
+                .commentCount(entity.getCommentCount())
+                .author(entity.getAuthor())
+                .assignee(entity.getAssignee())
+                .reactionsCount(entity.getReactionsCount())
+                .githubCreatedAt(entity.getGithubCreatedAt())
+                .githubUpdatedAt(entity.getGithubUpdatedAt())
+                .build();
     }
 }

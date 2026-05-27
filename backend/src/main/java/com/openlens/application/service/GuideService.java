@@ -40,9 +40,7 @@ public class GuideService implements GetContributionGuideUseCase {
         Repository repo = repositoryPort.findById(repoId)
                 .orElseThrow(() -> new ResourceNotFoundException("repository not found: " + repoId));
 
-        Issue issue = issuePort.findOpenByRepoId(repoId).stream()
-                .filter(i -> i.getId().equals(issueId))
-                .findFirst()
+        Issue issue = issuePort.findById(issueId)
                 .orElseThrow(() -> new ResourceNotFoundException("issue not found: " + issueId));
 
         List<PullRequest> mergedPrs = pullRequestPort.findByRepoId(repoId);

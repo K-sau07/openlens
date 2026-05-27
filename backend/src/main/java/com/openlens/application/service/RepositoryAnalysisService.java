@@ -12,6 +12,7 @@ import com.openlens.domain.port.output.RepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
     }
 
     @Override
+    @Transactional
     public AnalysisResponse analyze(String repoUrl, SkillLevel skillLevel) {
         log.info("analysis requested for {} at skill level {}", repoUrl, skillLevel);
 
@@ -63,6 +65,7 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RepoProfileOutput getProfile(Long repoId) {
         Repository r = repositoryPort.findById(repoId)
                 .orElseThrow(() -> new ResourceNotFoundException("repository not found: " + repoId));
@@ -81,6 +84,7 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RepoStatusOutput getStatus(String repoUrl) {
         Optional<Repository> repoOpt = repositoryPort.findByUrl(repoUrl);
 

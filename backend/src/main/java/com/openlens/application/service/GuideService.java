@@ -52,7 +52,10 @@ public class GuideService implements GetContributionGuideUseCase {
                 repo.getDescription() != null ? repo.getDescription() : "",
                 language,
                 repo.getOpenIssuesCount(),
-                mergedPrs.size()
+                mergedPrs.size(),
+                48,
+                true,
+                true
         );
 
         IssueInfo issueInfo = new IssueInfo(

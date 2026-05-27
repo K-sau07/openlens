@@ -29,8 +29,11 @@ public class GuideController {
                 output.repo().name(),
                 output.repo().description(),
                 output.repo().language(),
-                output.repo().openIssuesCount(),
-                output.repo().mergedPrCount()
+                output.repo().openIssues(),
+                output.repo().mergedPrs(),
+                output.repo().avgResponseHours(),
+                output.repo().ciPassing(),
+                output.repo().hasTests()
         );
 
         ContributionGuideResponse.IssueInfo issue = new ContributionGuideResponse.IssueInfo(

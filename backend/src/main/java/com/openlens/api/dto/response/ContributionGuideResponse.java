@@ -14,8 +14,11 @@ public record ContributionGuideResponse(
             String name,
             String description,
             String language,
-            int openIssuesCount,
-            int mergedPrCount
+            int openIssues,
+            int mergedPrs,
+            int avgResponseHours,
+            boolean ciPassing,
+            boolean hasTests
     ) {}
 
     public record IssueInfo(

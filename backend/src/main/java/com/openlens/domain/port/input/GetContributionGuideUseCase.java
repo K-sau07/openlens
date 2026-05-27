@@ -18,8 +18,11 @@ public interface GetContributionGuideUseCase {
             String name,
             String description,
             String language,
-            int openIssuesCount,
-            int mergedPrCount
+            int openIssues,
+            int mergedPrs,
+            int avgResponseHours,
+            boolean ciPassing,
+            boolean hasTests
     ) {}
 
     record IssueInfo(

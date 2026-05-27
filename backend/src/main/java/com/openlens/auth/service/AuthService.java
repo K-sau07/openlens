@@ -2,12 +2,12 @@ package com.openlens.auth.service;
 
 import com.openlens.auth.domain.UserEntity;
 import com.openlens.auth.domain.UserRepository;
+import com.openlens.auth.dto.UserProfileResponse;
+import com.openlens.domain.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 public class AuthService {
@@ -18,10 +18,11 @@ public class AuthService {
     private final JwtService jwtService;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, JwtService jwtService,
+                       BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
-        this.passwordEncoder = new BCryptPasswordEncoder(12);
+        this.passwordEncoder = passwordEncoder;
     }
 
     public String register(String email, String password, String name) {
@@ -52,14 +53,15 @@ public class AuthService {
         return jwtService.generate(user.getId(), user.getEmail());
     }
 
-    public Map<String, Object> getProfile(Long userId) {
+    public UserProfileResponse getProfile(Long userId) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
-        return Map.of(
-                "id", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName(),
-                "createdAt", user.getCreatedAt().toString()
+                .orElseThrow(() -> new ResourceNotFoundException("user not found: " + userId));
+
+        return new UserProfileResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getCreatedAt()
         );
     }
 }

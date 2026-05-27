@@ -1,20 +1,26 @@
 package com.openlens.application.service;
 
+import com.openlens.domain.exception.ResourceNotFoundException;
 import com.openlens.domain.model.Repository;
 import com.openlens.domain.model.RepositoryStatus;
 import com.openlens.domain.model.SkillLevel;
 import com.openlens.domain.port.input.AnalyzeRepositoryUseCase;
+import com.openlens.domain.port.input.GetRepoProfileUseCase;
+import com.openlens.domain.port.input.GetRepoStatusUseCase;
 import com.openlens.domain.port.output.IngestionJobPort;
 import com.openlens.domain.port.output.RepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase {
+public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
+        GetRepoProfileUseCase, GetRepoStatusUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(RepositoryAnalysisService.class);
 
@@ -42,7 +48,10 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase {
         String repoName = parts[1];
 
         if (existing.isEmpty()) {
-            Repository repo = new Repository(null, repoUrl, owner, repoName, null, 0, RepositoryStatus.PENDING, null);
+            Repository repo = Repository.builder()
+                    .url(repoUrl).owner(owner).name(repoName)
+                    .status(RepositoryStatus.PENDING)
+                    .build();
             repositoryPort.save(repo);
         }
 
@@ -53,7 +62,42 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase {
         return new AnalysisResponse(repoUrl, jobId, "PROCESSING");
     }
 
-    // expects https://github.com/owner/repo or github.com/owner/repo
+    @Override
+    public RepoProfileOutput getProfile(Long repoId) {
+        Repository r = repositoryPort.findById(repoId)
+                .orElseThrow(() -> new ResourceNotFoundException("repository not found: " + repoId));
+
+        return new RepoProfileOutput(
+                r.getId(), r.getUrl(), r.getOwner(), r.getName(),
+                r.getDescription(), r.getPrimaryLanguage(), r.getStars(),
+                r.getForkCount(), r.getWatchersCount(), r.getOpenIssuesCount(),
+                r.getLicense(), r.getDefaultBranch(),
+                r.getTopics() != null ? r.getTopics() : List.of(),
+                r.getLanguages() != null ? r.getLanguages() : Map.of(),
+                r.isHasWiki(), r.isHasDiscussions(),
+                r.getCreatedAtGitHub(), r.getLastPushedAt(),
+                r.getStatus().name(), r.getLastAnalyzedAt()
+        );
+    }
+
+    @Override
+    public RepoStatusOutput getStatus(String repoUrl) {
+        Optional<Repository> repoOpt = repositoryPort.findByUrl(repoUrl);
+
+        if (repoOpt.isEmpty()) {
+            return new RepoStatusOutput("PENDING", null);
+        }
+
+        Repository r = repoOpt.get();
+        String status = r.getStatus().name();
+
+        if ("INGESTING".equals(status) || "ANALYZING".equals(status)) {
+            status = "PROCESSING";
+        }
+
+        return new RepoStatusOutput(status, r.getId());
+    }
+
     private String[] parseRepoUrl(String url) {
         String cleaned = url.replaceAll("https?://", "").replaceAll("github\\.com/", "");
         String[] parts = cleaned.split("/");

@@ -1,7 +1,11 @@
 package com.openlens.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "issues")
@@ -23,7 +27,9 @@ public class IssueEntity {
     @Column(columnDefinition = "text")
     private String body;
 
-    private String labels;
+    @Column(columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    private List<String> labels;
 
     @Column(nullable = false, length = 20)
     private String state;
@@ -65,8 +71,8 @@ public class IssueEntity {
     public void setTitle(String title) { this.title = title; }
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }
-    public String getLabels() { return labels; }
-    public void setLabels(String labels) { this.labels = labels; }
+    public List<String> getLabels() { return labels; }
+    public void setLabels(List<String> labels) { this.labels = labels; }
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }
     public Integer getComplexityScore() { return complexityScore; }

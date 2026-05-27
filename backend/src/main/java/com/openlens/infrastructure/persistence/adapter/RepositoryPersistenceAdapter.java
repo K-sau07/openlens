@@ -70,27 +70,27 @@ public class RepositoryPersistenceAdapter implements RepositoryPort {
     }
 
     private Repository toDomain(RepositoryEntity entity) {
-        return new Repository(
-                entity.getId(),
-                entity.getUrl(),
-                entity.getOwner(),
-                entity.getName(),
-                entity.getPrimaryLanguage(),
-                entity.getStars(),
-                entity.getDescription(),
-                entity.getTopics() != null ? entity.getTopics() : List.of(),
-                entity.getForkCount(),
-                entity.getWatchersCount(),
-                entity.getOpenIssuesCount(),
-                entity.getLicense(),
-                entity.getDefaultBranch(),
-                entity.getLanguages() != null ? entity.getLanguages() : Map.of(),
-                entity.isHasWiki(),
-                entity.isHasDiscussions(),
-                entity.getCreatedAtGitHub(),
-                entity.getLastPushedAt(),
-                RepositoryStatus.valueOf(entity.getStatus()),
-                entity.getLastAnalyzedAt()
-        );
+        return Repository.builder()
+                .id(entity.getId())
+                .url(entity.getUrl())
+                .owner(entity.getOwner())
+                .name(entity.getName())
+                .primaryLanguage(entity.getPrimaryLanguage())
+                .stars(entity.getStars())
+                .description(entity.getDescription())
+                .topics(entity.getTopics() != null ? entity.getTopics() : List.of())
+                .forkCount(entity.getForkCount())
+                .watchersCount(entity.getWatchersCount())
+                .openIssuesCount(entity.getOpenIssuesCount())
+                .license(entity.getLicense())
+                .defaultBranch(entity.getDefaultBranch())
+                .languages(entity.getLanguages() != null ? entity.getLanguages() : Map.of())
+                .hasWiki(entity.isHasWiki())
+                .hasDiscussions(entity.isHasDiscussions())
+                .createdAtGitHub(entity.getCreatedAtGitHub())
+                .lastPushedAt(entity.getLastPushedAt())
+                .status(RepositoryStatus.valueOf(entity.getStatus()))
+                .lastAnalyzedAt(entity.getLastAnalyzedAt())
+                .build();
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openlens.domain.model.Issue;
 import com.openlens.domain.model.PullRequest;
+import com.openlens.domain.port.output.AiGenerationPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class AiAnalysisService {
+public class AiAnalysisService implements AiGenerationPort {
 
     private static final Logger log = LoggerFactory.getLogger(AiAnalysisService.class);
 
@@ -24,7 +25,7 @@ public class AiAnalysisService {
         this.objectMapper = objectMapper;
     }
 
-    // generates 5 quiz questions tailored to this specific repo
+    @Override
     public List<Map<String, Object>> generateQuizQuestions(
             String repoName, String language, List<Issue> issues, List<PullRequest> mergedPrs) {
 
@@ -98,7 +99,7 @@ public class AiAnalysisService {
         }
     }
 
-    // generates a full contribution guide for a specific issue
+    @Override
     public Map<String, Object> generateContributionGuide(
             String repoName, String language, Issue issue, List<PullRequest> mergedPrs) {
 

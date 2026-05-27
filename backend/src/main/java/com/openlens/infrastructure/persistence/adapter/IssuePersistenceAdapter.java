@@ -6,7 +6,6 @@ import com.openlens.infrastructure.persistence.entity.IssueEntity;
 import com.openlens.infrastructure.persistence.repository.IssueJpaRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -41,7 +40,7 @@ public class IssuePersistenceAdapter implements IssuePort {
         entity.setNumber(issue.getNumber());
         entity.setTitle(issue.getTitle());
         entity.setBody(issue.getBody());
-        entity.setLabels(issue.getLabels() != null ? String.join(",", issue.getLabels()) : null);
+        entity.setLabels(issue.getLabels());
         entity.setState(issue.getState());
         entity.setComplexityScore(issue.getComplexityScore());
         entity.setCommentCount(issue.getCommentCount());
@@ -54,16 +53,13 @@ public class IssuePersistenceAdapter implements IssuePort {
     }
 
     private Issue toDomain(IssueEntity entity) {
-        List<String> labels = entity.getLabels() != null && !entity.getLabels().isBlank()
-                ? Arrays.asList(entity.getLabels().split(","))
-                : List.of();
         return new Issue(
                 entity.getId(),
                 entity.getRepoId(),
                 entity.getNumber(),
                 entity.getTitle(),
                 entity.getBody(),
-                labels,
+                entity.getLabels() != null ? entity.getLabels() : List.of(),
                 entity.getState(),
                 entity.getComplexityScore(),
                 entity.getCommentCount(),

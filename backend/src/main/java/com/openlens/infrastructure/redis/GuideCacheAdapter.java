@@ -2,6 +2,7 @@ package com.openlens.infrastructure.redis;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.openlens.domain.port.output.GuideCachePort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +13,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-// caches AI-generated guide responses to avoid redundant Claude calls
 @Component
-public class GuideCacheAdapter {
+public class GuideCacheAdapter implements GuideCachePort {
 
     private static final Logger log = LoggerFactory.getLogger(GuideCacheAdapter.class);
     private static final String KEY_PREFIX = "guide:";
@@ -30,6 +30,7 @@ public class GuideCacheAdapter {
         this.ttl = Duration.ofHours(ttlHours);
     }
 
+    @Override
     public Optional<Map<String, Object>> get(Long repoId, Long issueId) {
         String key = buildKey(repoId, issueId);
         try {
@@ -47,6 +48,7 @@ public class GuideCacheAdapter {
         }
     }
 
+    @Override
     public void put(Long repoId, Long issueId, Map<String, Object> guide) {
         String key = buildKey(repoId, issueId);
         try {
@@ -58,6 +60,7 @@ public class GuideCacheAdapter {
         }
     }
 
+    @Override
     public void evictByRepo(Long repoId) {
         try {
             var keys = redis.keys(KEY_PREFIX + repoId + ":*");

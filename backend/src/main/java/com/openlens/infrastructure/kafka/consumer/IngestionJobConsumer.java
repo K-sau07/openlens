@@ -84,23 +84,22 @@ public class IngestionJobConsumer {
             return;
         }
 
-        Repository repo = existing.get()
-                .withLanguage(metadata.primaryLanguage())
-                .withMetadata(
-                        metadata.description(),
-                        metadata.topics(),
-                        metadata.forkCount(),
-                        metadata.watchersCount(),
-                        metadata.openIssuesCount(),
-                        metadata.license(),
-                        metadata.defaultBranch(),
-                        metadata.hasWiki(),
-                        metadata.hasDiscussions(),
-                        metadata.createdAt(),
-                        metadata.lastPushedAt(),
-                        metadata.stars()
-                )
-                .withLanguages(languages);
+        Repository repo = existing.get().toBuilder()
+                .primaryLanguage(metadata.primaryLanguage())
+                .description(metadata.description())
+                .topics(metadata.topics())
+                .forkCount(metadata.forkCount())
+                .watchersCount(metadata.watchersCount())
+                .openIssuesCount(metadata.openIssuesCount())
+                .license(metadata.license())
+                .defaultBranch(metadata.defaultBranch())
+                .hasWiki(metadata.hasWiki())
+                .hasDiscussions(metadata.hasDiscussions())
+                .createdAtGitHub(metadata.createdAt())
+                .lastPushedAt(metadata.lastPushedAt())
+                .stars(metadata.stars())
+                .languages(languages)
+                .build();
 
         repo.markReady();
         Repository saved = repositoryPort.save(repo);

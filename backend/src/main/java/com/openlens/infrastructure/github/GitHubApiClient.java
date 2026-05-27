@@ -16,7 +16,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Executors;
 
@@ -25,7 +24,6 @@ public class GitHubApiClient implements GitHubDataPort {
 
     private static final Logger log = LoggerFactory.getLogger(GitHubApiClient.class);
     private static final String BASE_URL = "https://api.github.com";
-    private static final DateTimeFormatter GH_DATE = DateTimeFormatter.ISO_DATE_TIME;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -149,14 +147,10 @@ public class GitHubApiClient implements GitHubDataPort {
             JsonNode response = get(url);
             List<Contributor> contributors = new ArrayList<>();
             for (JsonNode node : response) {
-                contributors.add(new Contributor(
-                        null,
-                        null,
-                        node.get("login").asText(),
-                        node.get("contributions").asInt(),
-                        null,
-                        null
-                ));
+                contributors.add(Contributor.builder()
+                        .username(node.get("login").asText())
+                        .totalReviews(node.get("contributions").asInt())
+                        .build());
             }
             return contributors;
         } catch (Exception e) {
@@ -207,7 +201,9 @@ public class GitHubApiClient implements GitHubDataPort {
         JsonNode value = node.get(field);
         if (value == null || value.isNull()) return null;
         try {
-            return LocalDateTime.parse(value.asText().replace("Z", ""), GH_DATE);
+            return java.time.Instant.parse(value.asText())
+                    .atZone(java.time.ZoneOffset.UTC)
+                    .toLocalDateTime();
         } catch (Exception e) {
             return null;
         }
@@ -247,11 +243,10 @@ public class GitHubApiClient implements GitHubDataPort {
     }
 
     private PullRequest mapPullRequest(JsonNode node) {
-        String mergedAt = node.get("merged_at").asText();
-        String createdAt = node.get("created_at").asText();
-
-        LocalDateTime merged = LocalDateTime.parse(mergedAt.replace("Z", ""), GH_DATE);
-        LocalDateTime created = LocalDateTime.parse(createdAt.replace("Z", ""), GH_DATE);
+        LocalDateTime merged = java.time.Instant.parse(node.get("merged_at").asText())
+                .atZone(java.time.ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime created = java.time.Instant.parse(node.get("created_at").asText())
+                .atZone(java.time.ZoneOffset.UTC).toLocalDateTime();
         long hours = java.time.Duration.between(created, merged).toHours();
 
         Integer linkedIssue = null;

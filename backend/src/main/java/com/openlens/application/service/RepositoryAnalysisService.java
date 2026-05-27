@@ -34,7 +34,6 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
     }
 
     @Override
-    @Transactional
     public AnalysisResponse analyze(String repoUrl, SkillLevel skillLevel) {
         log.info("analysis requested for {} at skill level {}", repoUrl, skillLevel);
 
@@ -49,6 +48,18 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
         String owner = parts[0];
         String repoName = parts[1];
 
+        persistIfNew(repoUrl, owner, repoName, existing);
+
+        String jobId = UUID.randomUUID().toString();
+        ingestionJobPort.publishIngestionRequest(repoUrl, owner, repoName);
+
+        log.info("ingestion job {} published for {}", jobId, repoUrl);
+        return new AnalysisResponse(repoUrl, jobId, "PROCESSING");
+    }
+
+    @Transactional
+    protected void persistIfNew(String repoUrl, String owner, String repoName,
+                                 Optional<Repository> existing) {
         if (existing.isEmpty()) {
             Repository repo = Repository.builder()
                     .url(repoUrl).owner(owner).name(repoName)
@@ -56,12 +67,6 @@ public class RepositoryAnalysisService implements AnalyzeRepositoryUseCase,
                     .build();
             repositoryPort.save(repo);
         }
-
-        String jobId = UUID.randomUUID().toString();
-        ingestionJobPort.publishIngestionRequest(repoUrl, owner, repoName);
-
-        log.info("ingestion job {} published for {}", jobId, repoUrl);
-        return new AnalysisResponse(repoUrl, jobId, "PROCESSING");
     }
 
     @Override

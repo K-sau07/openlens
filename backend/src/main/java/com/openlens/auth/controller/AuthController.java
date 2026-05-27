@@ -8,6 +8,7 @@ import com.openlens.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,15 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final String cookieName;
+    private final int cookieMaxAge;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,
+                          @Value("${auth.cookie.name}") String cookieName,
+                          @Value("${auth.cookie.max-age-days}") int cookieMaxAgeDays) {
         this.authService = authService;
+        this.cookieName = cookieName;
+        this.cookieMaxAge = cookieMaxAgeDays * 24 * 60 * 60;
     }
 
     @PostMapping("/register")
@@ -40,7 +47,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("ol_token", "");
+        Cookie cookie = new Cookie(cookieName, "");
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
@@ -58,10 +65,10 @@ public class AuthController {
     }
 
     private void setTokenCookie(HttpServletResponse response, String token) {
-        Cookie cookie = new Cookie("ol_token", token);
+        Cookie cookie = new Cookie(cookieName, token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60);
+        cookie.setMaxAge(cookieMaxAge);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }

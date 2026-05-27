@@ -9,18 +9,28 @@ public class Contributor {
     private final Integer avgResponseHours;
     private final String reviewStyle;
 
-    public Contributor(Long id, Long repoId, String username, int totalReviews,
-                       Integer avgResponseHours, String reviewStyle) {
-        this.id = id;
-        this.repoId = repoId;
-        this.username = username;
-        this.totalReviews = totalReviews;
-        this.avgResponseHours = avgResponseHours;
-        this.reviewStyle = reviewStyle;
+    private Contributor(Builder builder) {
+        this.id = builder.id;
+        this.repoId = builder.repoId;
+        this.username = builder.username;
+        this.totalReviews = builder.totalReviews;
+        this.avgResponseHours = builder.avgResponseHours;
+        this.reviewStyle = builder.reviewStyle;
     }
 
     public boolean isActiveMaintainer() {
         return totalReviews >= 10;
+    }
+
+    public Builder toBuilder() {
+        return new Builder()
+                .id(id).repoId(repoId).username(username)
+                .totalReviews(totalReviews).avgResponseHours(avgResponseHours)
+                .reviewStyle(reviewStyle);
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public Long getId() { return id; }
@@ -29,4 +39,24 @@ public class Contributor {
     public int getTotalReviews() { return totalReviews; }
     public Integer getAvgResponseHours() { return avgResponseHours; }
     public String getReviewStyle() { return reviewStyle; }
+
+    public static class Builder {
+        private Long id;
+        private Long repoId;
+        private String username;
+        private int totalReviews;
+        private Integer avgResponseHours;
+        private String reviewStyle;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder repoId(Long repoId) { this.repoId = repoId; return this; }
+        public Builder username(String username) { this.username = username; return this; }
+        public Builder totalReviews(int totalReviews) { this.totalReviews = totalReviews; return this; }
+        public Builder avgResponseHours(Integer avgResponseHours) { this.avgResponseHours = avgResponseHours; return this; }
+        public Builder reviewStyle(String reviewStyle) { this.reviewStyle = reviewStyle; return this; }
+
+        public Contributor build() {
+            return new Contributor(this);
+        }
+    }
 }

@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,12 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final String cookieName;
 
-    public JwtAuthFilter(JwtService jwtService) {
+    public JwtAuthFilter(JwtService jwtService,
+                         @Value("${auth.cookie.name}") String cookieName) {
         this.jwtService = jwtService;
+        this.cookieName = cookieName;
     }
 
     @Override
@@ -41,15 +45,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private String extractToken(HttpServletRequest request) {
-        // check httpOnly cookie first
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("ol_token".equals(cookie.getName())) {
+                if (cookieName.equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }
         }
-        // fallback: Authorization header
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             return header.substring(7);

@@ -37,6 +37,11 @@ spring:
     listener:
       # Do not let a missing broker take the application down at startup.
       missing-topics-fatal: false
+      # With no broker to reach, starting the listeners produces a reconnect
+      # storm — several hundred log lines a minute against an endpoint that
+      # will never answer, which is wasted CPU on a free instance. Set
+      # KAFKA_ENABLED=true alongside KAFKA_SERVERS once a broker exists.
+      auto-startup: ${KAFKA_ENABLED:false}
 
 server:
   port: ${PORT:8080}

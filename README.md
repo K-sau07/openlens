@@ -4,6 +4,12 @@ Paste a GitHub repo URL. Answer 5 questions about your experience. Get a contrib
 
 The problem this solves: everyone tells developers to contribute to open source. Nobody tells them how to actually do it for a specific repo.
 
+**[Live demo →](https://openlens-ten.vercel.app)**  ·  API: [openlens-api.onrender.com](https://openlens-api.onrender.com/actuator/health)
+
+> Hosted on free tiers: the API sleeps after ~15 minutes idle, so the first request after a
+> quiet spell takes about 50 seconds to wake it. Everything after that is fast.
+
+
 Live demo repo: [OpenCodeIntel/opencodeintel](https://github.com/OpenCodeIntel/opencodeintel)
 
 ---

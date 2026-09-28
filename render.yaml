@@ -1,0 +1,40 @@
+# Render Blueprint — New → Blueprint → point at this repo.
+# Free tier: sleeps after ~15 min idle, cold start ~50s.
+#
+# Kafka is deliberately not wired up: there is no free managed broker on this
+# stack. The REST API works; asynchronous repository ingestion does not run
+# until KAFKA_SERVERS points at a real broker.
+services:
+  - type: web
+    name: openlens-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # Neon. Use the DIRECT endpoint (host WITHOUT -pooler).
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Upstash rediss:// URL.
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # Unauthenticated GitHub API allows 60 requests/hour, which the ingestion
+      # path exhausts almost immediately. A read-only PAT raises it to 5000.
+      - key: GITHUB_TOKEN
+        sync: false
+      # Billed per request. Brief generation fails without it; the rest works.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # The deployed frontend origin.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false

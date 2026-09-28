@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { apiUrl } from '../../services/apiBase'
 
 const c = {
   bg: '#0C0604', text: '#ECD9B8', muted: 'rgba(236,217,184,0.5)',
@@ -33,7 +34,7 @@ export default function RegisterPage() {
     if (password.length < 8) { setError('password must be at least 8 characters'); return }
     setError(''); setLoading(true)
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -41,7 +42,7 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'registration failed'); return }
-      const me = await fetch('/api/auth/me', { credentials: 'include' })
+      const me = await fetch(apiUrl('/api/auth/me'), { credentials: 'include' })
       if (me.ok) setUser(await me.json())
       navigate('/')
     } catch {
